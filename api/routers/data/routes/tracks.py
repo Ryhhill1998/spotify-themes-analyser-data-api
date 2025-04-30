@@ -1,12 +1,9 @@
-from typing import Annotated
-
-from fastapi import APIRouter, HTTPException, status, Body
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from api.data_structures.enums import SpotifyItemType
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
-from api.data_structures.models import Emotion, EmotionalTagsResponse, SpotifyTrack, AccessToken, RequestedItems
+from api.models.models import Emotion, EmotionalTagsResponse, SpotifyTrack, AccessToken, RequestedItems
 from api.services.insights_service import InsightsServiceException
 from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
 

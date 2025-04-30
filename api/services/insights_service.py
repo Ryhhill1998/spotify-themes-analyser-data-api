@@ -3,8 +3,7 @@ from collections import defaultdict
 import pydantic
 from loguru import logger
 
-from api.data_structures.enums import TimeRange
-from api.data_structures.models import LyricsRequest, TopEmotion, EmotionalProfileResponse, EmotionalProfileRequest, \
+from api.models.models import LyricsRequest, TopEmotion, EmotionalProfileResponse, EmotionalProfileRequest, \
     EmotionalTagsRequest, Emotion, EmotionalTagsResponse
 from api.services.analysis_service import AnalysisService, AnalysisServiceException
 from api.services.lyrics_service import LyricsService, LyricsServiceException
@@ -186,12 +185,7 @@ class InsightsService:
         top_emotions = sorted(average_emotions, key=lambda emotion: emotion.percentage, reverse=True)
         return top_emotions
 
-    async def get_top_emotions(
-            self,
-            access_token: str,
-            time_range: TimeRange,
-            limit: int
-    ) -> list[TopEmotion]:
+    async def get_top_emotions(self, access_token: str, time_range: str, limit: int) -> list[TopEmotion]:
         """
         Retrieves the top emotions detected in a user's top Spotify tracks.
 

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status
@@ -5,13 +6,18 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import Field
 
-from api.data_structures.enums import TimeRange
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
-from api.data_structures.models import SpotifyProfile, SpotifyArtist, AccessToken
+from api.models.models import SpotifyProfile, SpotifyArtist, AccessToken
 from api.services.insights_service import InsightsServiceException
 from api.services.music.spotify_data_service import SpotifyDataServiceException, SpotifyDataServiceUnauthorisedException
 
 router = APIRouter(prefix="/me")
+
+
+class TimeRange(str, Enum):
+    SHORT = "short_term"
+    MEDIUM = "medium_term"
+    LONG = "long_term"
 
 
 @router.post("/profile", response_model=SpotifyProfile)

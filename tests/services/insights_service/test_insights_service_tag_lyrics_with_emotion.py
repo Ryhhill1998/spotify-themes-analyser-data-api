@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock
 import pytest
 
-from api.data_structures.models import (
+from api.models.models import (
     TokenData,
     LyricsResponse,
     SpotifyTrack,

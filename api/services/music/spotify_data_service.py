@@ -5,8 +5,7 @@ from enum import Enum
 from loguru import logger
 import pydantic
 
-from api.data_structures.enums import TimeRange
-from api.data_structures.models import SpotifyItem, SpotifyTrack, SpotifyArtist, SpotifyTrackArtist, SpotifyTrackData, \
+from api.models.models import SpotifyItem, SpotifyTrack, SpotifyArtist, SpotifyTrackArtist, SpotifyTrackData, \
     SpotifyArtistData, SpotifyProfile, SpotifyProfileData, TopGenre
 from api.services.endpoint_requester import EndpointRequester, EndpointRequesterUnauthorisedException, \
     EndpointRequesterException, EndpointRequesterNotFoundException
@@ -259,7 +258,7 @@ class SpotifyDataService(SpotifyService):
             self,
             access_token: str,
             item_type: SpotifyItemType,
-            time_range: TimeRange,
+            time_range: str,
             limit: int
     ) -> list[dict]:
         """
@@ -288,7 +287,7 @@ class SpotifyDataService(SpotifyService):
         """
 
         try:
-            params = {"time_range": time_range.value, "limit": limit}
+            params = {"time_range": time_range, "limit": limit}
             url = f"{self.base_url}/me/top/{item_type.value}s?" + urllib.parse.urlencode(params)
 
             data = await self.endpoint_requester.get(url=url, headers=self._get_bearer_auth_headers(access_token))
@@ -305,7 +304,7 @@ class SpotifyDataService(SpotifyService):
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
         
-    async def get_top_artists(self, access_token: str, time_range: TimeRange, limit: int) -> list[SpotifyArtist]:
+    async def get_top_artists(self, access_token: str, time_range: str, limit: int) -> list[SpotifyArtist]:
         top_items_data = await self._get_top_items_data(
             access_token=access_token, 
             item_type=SpotifyItemType.ARTIST, 
@@ -315,7 +314,7 @@ class SpotifyDataService(SpotifyService):
         top_artists = [self._create_artist(entry) for entry in top_items_data]
         return top_artists
     
-    async def get_top_tracks(self, access_token: str, time_range: TimeRange, limit: int) -> list[SpotifyTrack]:
+    async def get_top_tracks(self, access_token: str, time_range: str, limit: int) -> list[SpotifyTrack]:
         top_items_data = await self._get_top_items_data(
             access_token=access_token, 
             item_type=SpotifyItemType.TRACK, 
@@ -325,7 +324,7 @@ class SpotifyDataService(SpotifyService):
         top_tracks = [self._create_track(entry) for entry in top_items_data]
         return top_tracks
 
-    async def get_top_genres(self, access_token: str, time_range: TimeRange, limit: int) -> list[TopGenre]:
+    async def get_top_genres(self, access_token: str, time_range: str, limit: int) -> list[TopGenre]:
         top_artists = await self.get_top_artists(access_token=access_token, time_range=time_range, limit=50)
 
         all_genres = [

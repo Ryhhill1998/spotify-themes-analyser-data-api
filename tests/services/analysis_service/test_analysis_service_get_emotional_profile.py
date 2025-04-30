@@ -1,5 +1,5 @@
 import pytest
-from api.data_structures.models import EmotionalProfileResponse, EmotionalProfile, EmotionalProfileRequest
+from api.models.models import EmotionalProfileResponse, EmotionalProfile, EmotionalProfileRequest
 from api.services.endpoint_requester import EndpointRequesterException
 from api.services.analysis_service import AnalysisServiceException
 

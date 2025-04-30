@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import Field
 
-from api.data_structures.enums import TimeRange, SpotifyItemType
+from api.data_structures.enums import TimeRange
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
 from api.data_structures.models import SpotifyProfile, SpotifyArtist, AccessToken
 from api.services.insights_service import InsightsServiceException

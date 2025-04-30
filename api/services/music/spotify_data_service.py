@@ -1,15 +1,21 @@
 import urllib.parse
 from collections import defaultdict
+from enum import Enum
 
 from loguru import logger
 import pydantic
 
-from api.data_structures.enums import SpotifyItemType, TimeRange
+from api.data_structures.enums import TimeRange
 from api.data_structures.models import SpotifyItem, SpotifyTrack, SpotifyArtist, SpotifyTrackArtist, SpotifyTrackData, \
     SpotifyArtistData, SpotifyProfile, SpotifyProfileData, TopGenre
 from api.services.endpoint_requester import EndpointRequester, EndpointRequesterUnauthorisedException, \
     EndpointRequesterException, EndpointRequesterNotFoundException
 from api.services.music.spotify_service import SpotifyService
+
+
+class SpotifyItemType(str, Enum):
+    ARTIST = "artist"
+    TRACK = "track"
 
 
 class SpotifyDataServiceException(Exception):

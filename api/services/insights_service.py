@@ -3,9 +3,9 @@ from collections import defaultdict
 import pydantic
 from loguru import logger
 
-from api.data_structures.enums import TimeRange, SpotifyItemType
+from api.data_structures.enums import TimeRange
 from api.data_structures.models import LyricsRequest, TopEmotion, EmotionalProfileResponse, EmotionalProfileRequest, \
-    EmotionalTagsRequest, Emotion, SpotifyTrack, EmotionalTagsResponse
+    EmotionalTagsRequest, Emotion, EmotionalTagsResponse
 from api.services.analysis_service import AnalysisService, AnalysisServiceException
 from api.services.lyrics_service import LyricsService, LyricsServiceException
 from api.services.music.spotify_data_service import SpotifyDataService, SpotifyDataServiceException

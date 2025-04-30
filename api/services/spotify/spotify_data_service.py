@@ -303,6 +303,10 @@ class SpotifyDataService(SpotifyService):
             error_message = "Failed to make request to Spotify API"
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
+        except KeyError:
+            error_message = "No items key present in API data"
+            logger.error(error_message)
+            raise SpotifyDataServiceException(error_message)
         
     async def get_top_artists(self, access_token: str, time_range: str, limit: int) -> list[SpotifyArtist]:
         top_items_data = await self._get_top_items_data(

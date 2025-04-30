@@ -2,12 +2,11 @@ from enum import Enum
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import Field
 
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
-from api.models.models import SpotifyProfile, SpotifyArtist, AccessToken
+from api.models.models import SpotifyProfile, SpotifyArtist, AccessToken, SpotifyTrack, TopGenre, TopEmotion
 from api.services.insights_service import InsightsServiceException
 from api.services.music.spotify_data_service import SpotifyDataServiceException, SpotifyDataServiceUnauthorisedException
 
@@ -25,6 +24,30 @@ async def get_profile(
         access_token: AccessToken,
         spotify_data_service: SpotifyDataServiceDependency
 ) -> SpotifyProfile:
+    """
+    Retrieves the user's Spotify profile details (id, display_name, email, href, images, followers).
+
+    Parameters
+    ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
+    spotify_data_service : SpotifyDataServiceDependency
+        The class used to retrieve data from the Spotify API.
+
+    Returns
+    -------
+    SpotifyProfile
+        The Spotify profile data of the signed-in user.
+
+    Raises
+    ------
+    HTTPException (401)
+        Raised with a 401 Unauthorised status code if the access token is invalid or expired.
+    HTTPException (500)
+        Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's
+        profile from Spotify.
+    """
+
     try:
         profile_data = await spotify_data_service.get_profile_data(access_token.access_token)
         return profile_data
@@ -46,6 +69,10 @@ async def get_top_artists(
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
+    spotify_data_service : SpotifyDataServiceDependency
+        The class used to retrieve data from the Spotify API.
     time_range : TimeRange
         The time range to retrieve the top artists for.
     limit : int
@@ -53,12 +80,14 @@ async def get_top_artists(
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing a list of top artists with updated token cookies.
+    list[SpotifyArtist]
+        A list of the user's top artists.
 
     Raises
     ------
-    HTTPException
+    HTTPException (401)
+        Raised with a 401 Unauthorised status code if the access token is invalid or expired.
+    HTTPException (500)
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's top
         artists from Spotify.
     """
@@ -66,7 +95,7 @@ async def get_top_artists(
     try:
         top_artists = await spotify_data_service.get_top_artists(
             access_token=access_token.access_token,
-            time_range=time_range,
+            time_range=time_range.value,
             limit=limit
         )
         return top_artists
@@ -80,18 +109,22 @@ async def get_top_artists(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
 
 
-@router.post("/top/tracks")
+@router.post("/top/tracks", response_model=list[SpotifyTrack])
 async def get_top_tracks(
         access_token: AccessToken,
         spotify_data_service: SpotifyDataServiceDependency,
         time_range: TimeRange,
         limit: Annotated[int, Field(ge=10, le=50)] = 50
-) -> JSONResponse:
+) -> list[SpotifyTrack]:
     """
     Retrieves the user's top tracks from Spotify.
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
+    spotify_data_service : SpotifyDataServiceDependency
+        The class used to retrieve data from the Spotify API.
     time_range : TimeRange
         The time range to retrieve the top tracks for.
     limit : int
@@ -99,12 +132,14 @@ async def get_top_tracks(
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing a list of top tracks with updated token cookies.
+    list[SpotifyTrack]
+        A list of the user's top tracks.
 
     Raises
     ------
-    HTTPException
+    HTTPException (401)
+        Raised with a 401 Unauthorised status code if the access token is invalid or expired.
+    HTTPException (500)
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's top
         tracks from Spotify.
     """
@@ -112,7 +147,7 @@ async def get_top_tracks(
     try:
         top_tracks = await spotify_data_service.get_top_tracks(
             access_token=access_token.access_token,
-            time_range=time_range,
+            time_range=time_range.value,
             limit=limit
         )
         return top_tracks
@@ -126,17 +161,45 @@ async def get_top_tracks(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
 
 
-@router.post("/top/genres")
+@router.post("/top/genres", response_model=list[TopGenre])
 async def get_top_genres(
         access_token: AccessToken,
         spotify_data_service: SpotifyDataServiceDependency,
         time_range: TimeRange,
         limit: Annotated[int, Field(ge=1)] = 5
-):
+) -> list[TopGenre]:
+    """
+    Retrieves the user's top genres from Spotify.
+
+    Parameters
+    ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
+    spotify_data_service : SpotifyDataServiceDependency
+        The class used to retrieve data from the Spotify API.
+    time_range : TimeRange
+        The time range to retrieve the top genres for.
+    limit : int
+        Limit to specify the number of top genres to retrieve (default is 5, must be at least 1).
+
+    Returns
+    -------
+    list[TopGenre]
+        A list of the user's top genres.
+
+    Raises
+    ------
+    HTTPException (401)
+        Raised with a 401 Unauthorised status code if the access token is invalid or expired.
+    HTTPException (500)
+        Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's top
+        genres from Spotify.
+    """
+
     try:
         top_genres = await spotify_data_service.get_top_genres(
             access_token=access_token.access_token,
-            time_range=time_range,
+            time_range=time_range.value,
             limit=limit
         )
         return top_genres
@@ -150,25 +213,31 @@ async def get_top_genres(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
 
 
-@router.post("/top/emotions")
+@router.post("/top/emotions", response_model=list[TopEmotion])
 async def get_top_emotions(
         access_token: AccessToken,
         insights_service: InsightsServiceDependency,
         time_range: TimeRange,
         limit: Annotated[int, Field(ge=1, le=15)] = 5
-) -> JSONResponse:
+) -> list[TopEmotion]:
     """
-    Retrieves the user's top emotional responses based on their music listening history.
+    Retrieves the user's top emotions based on their Spotify listening history.
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
     insights_service : InsightsServiceDependency
         Dependency for analyzing and retrieving the top emotions in the user's Spotify listening history.
+    time_range : TimeRange
+        The time range to retrieve the top tracks for.
+    limit : int
+        Limit to specify the number of top tracks to retrieve (default is 5, must be at least 1 but no more than 15).
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing a list of top emotional responses with updated token cookies.
+    list[TopEmotion]
+        A list of the user's top emotions.
 
     Raises
     ------
@@ -180,7 +249,7 @@ async def get_top_emotions(
     try:
         top_emotions = await insights_service.get_top_emotions(
             access_token=access_token.access_token,
-            time_range=time_range,
+            time_range=time_range.value,
             limit=limit
         )
         return top_emotions

@@ -215,7 +215,7 @@ class InsightsService:
 
         try:
             # get top tracks and refreshed tokens (if expired)
-            top_items = await self.spotify_data_service.get_top_items(
+            top_items = await self.spotify_data_service._get_top_items_data(
                 access_token=access_token,
                 item_type=SpotifyItemType.TRACK,
                 time_range=time_range
@@ -289,7 +289,7 @@ class InsightsService:
         """
 
         try:
-            track_response = await self.spotify_data_service.get_item_by_id(
+            track_response = await self.spotify_data_service._get_item_by_id(
                 access_token=access_token,
                 item_id=track_id,
                 item_type=SpotifyItemType.TRACK

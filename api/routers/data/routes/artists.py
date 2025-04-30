@@ -40,7 +40,7 @@ async def get_artist_by_id(
     """
 
     try:
-        artist = await spotify_data_service.get_item_by_id(
+        artist = await spotify_data_service._get_item_by_id(
             access_token=access_token.access_token,
             item_id=artist_id,
             item_type=SpotifyItemType.ARTIST
@@ -84,7 +84,7 @@ async def get_several_artists_by_ids(
     """
 
     try:
-        artist = await spotify_data_service.get_many_items_by_ids(
+        artist = await spotify_data_service._get_items_data_by_ids(
             access_token=access_token.access_token,
             item_ids=requested_items.ids,
             item_type=SpotifyItemType.ARTIST

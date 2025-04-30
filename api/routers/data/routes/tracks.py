@@ -43,7 +43,7 @@ async def get_track_by_id(
     """
 
     try:
-        track = await spotify_data_service.get_item_by_id(
+        track = await spotify_data_service._get_item_by_id(
             access_token=access_token.access_token,
             item_id=track_id,
             item_type=SpotifyItemType.TRACK
@@ -87,7 +87,7 @@ async def get_several_tracks_by_ids(
     """
 
     try:
-        track = await spotify_data_service.get_many_items_by_ids(
+        track = await spotify_data_service._get_items_data_by_ids(
             access_token=access_token.access_token,
             item_ids=requested_items.ids,
             item_type=SpotifyItemType.TRACK

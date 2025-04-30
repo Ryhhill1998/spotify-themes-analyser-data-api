@@ -58,7 +58,7 @@ async def get_top_artists(
     """
 
     try:
-        top_artists = await spotify_data_service.get_top_items(
+        top_artists = await spotify_data_service._get_top_items_data(
             access_token=access_token.access_token,
             item_type=SpotifyItemType.ARTIST,
             time_range=time_range,
@@ -105,7 +105,7 @@ async def get_top_tracks(
     """
 
     try:
-        top_tracks = await spotify_data_service.get_top_items(
+        top_tracks = await spotify_data_service._get_top_items_data(
             access_token=access_token.access_token,
             item_type=SpotifyItemType.TRACK,
             time_range=time_range,

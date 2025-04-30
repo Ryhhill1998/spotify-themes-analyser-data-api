@@ -24,7 +24,7 @@ class SpotifyDataServiceException(Exception):
 
     def __init__(self, message):
         super().__init__(message)
-        
+
 
 class SpotifyDataServiceUnauthorisedException(SpotifyDataServiceException):
     """
@@ -172,27 +172,36 @@ class SpotifyDataService(SpotifyService):
         pydantic.ValidationError
             If data validation fails.
         """
-
-        track_data = SpotifyTrackData(**data)
-
-        artist = track_data.artists[0]
-        track_artist = SpotifyTrackArtist(id=artist.id, name=artist.name)
-        album = track_data.album
-
-        top_track = SpotifyTrack(
-            id=track_data.id,
-            name=track_data.name,
-            images=album.images,
-            album_name=album.name,
-            spotify_url=track_data.external_urls.spotify,
-            artist=track_artist,
-            release_date=album.release_date,
-            explicit=track_data.explicit,
-            duration_ms=track_data.duration_ms,
-            popularity=track_data.popularity
-        )
-
-        return top_track
+        
+        try:
+            track_data = SpotifyTrackData(**data)
+    
+            artist = track_data.artists[0]
+            track_artist = SpotifyTrackArtist(id=artist.id, name=artist.name)
+            album = track_data.album
+    
+            top_track = SpotifyTrack(
+                id=track_data.id,
+                name=track_data.name,
+                images=album.images,
+                album_name=album.name,
+                spotify_url=track_data.external_urls.spotify,
+                artist=track_artist,
+                release_date=album.release_date,
+                explicit=track_data.explicit,
+                duration_ms=track_data.duration_ms,
+                popularity=track_data.popularity
+            )
+    
+            return top_track
+        except TypeError as e:
+            error_message = f"Spotify data not of type dict. Actual type: {type(data)} - {e}"
+            logger.error(error_message)
+            raise SpotifyDataServiceException(error_message)
+        except pydantic.ValidationError as e:
+            error_message = f"Failed to create SpotifyTrack from Spotify API data: {data} - {e}"
+            logger.error(error_message)
+            raise SpotifyDataServiceException(error_message)
 
     @staticmethod
     def _create_artist(data: dict) -> SpotifyArtist:
@@ -217,67 +226,36 @@ class SpotifyDataService(SpotifyService):
             If data validation fails.
         """
 
-        artist_data = SpotifyArtistData(**data)
-
-        top_artist = SpotifyArtist(
-            id=artist_data.id,
-            name=artist_data.name,
-            images=artist_data.images,
-            spotify_url=artist_data.external_urls.spotify,
-            genres=artist_data.genres,
-            followers=artist_data.followers.total,
-            popularity=artist_data.popularity
-        )
-
-        return top_artist
-
-    def _create_item(self, data: dict, item_type: SpotifyItemType) -> SpotifyItem:
-        """
-        Creates a TopItem (TopArtist or TopTrack) object based on the specified item type.
-
-        Parameters
-        ----------
-        data : dict
-            The item data received from Spotify's API.
-        item_type : SpotifyItemType
-            The type of item to create (TRACKS or ARTISTS).
-
-        Returns
-        -------
-        SpotifyItem
-            A validated TopItem object.
-
-        Raises
-        ------
-        SpotifyDataServiceException
-            If a required field is missing, the item type is invalid or data validation fails.
-        """
-
         try:
-            if item_type == SpotifyItemType.TRACK:
-                return self._create_track(data=data)
-            elif item_type == SpotifyItemType.ARTIST:
-                return self._create_artist(data=data)
-            else:
-                error_message = f"Invalid item_type: {item_type}"
-                logger.error(error_message)
-                raise SpotifyDataServiceException(error_message)
+            artist_data = SpotifyArtistData(**data)
+    
+            top_artist = SpotifyArtist(
+                id=artist_data.id,
+                name=artist_data.name,
+                images=artist_data.images,
+                spotify_url=artist_data.external_urls.spotify,
+                genres=artist_data.genres,
+                followers=artist_data.followers.total,
+                popularity=artist_data.popularity
+            )
+    
+            return top_artist
         except TypeError as e:
             error_message = f"Spotify data not of type dict. Actual type: {type(data)} - {e}"
             logger.error(error_message)
             raise SpotifyDataServiceException(error_message)
         except pydantic.ValidationError as e:
-            error_message = f"Failed to create TopItem from Spotify API data: {data}, type: {item_type} - {e}"
+            error_message = f"Failed to create SpotifyArtist from Spotify API data: {data} - {e}"
             logger.error(error_message)
             raise SpotifyDataServiceException(error_message)
 
-    async def get_top_items(
+    async def _get_top_items_data(
             self,
             access_token: str,
             item_type: SpotifyItemType,
             time_range: TimeRange,
-            limit: int = 30
-    ) -> list[SpotifyItem]:
+            limit: int
+    ) -> list[dict]:
         """
         Fetches a user's top items from Spotify.
 
@@ -309,7 +287,7 @@ class SpotifyDataService(SpotifyService):
 
             data = await self.endpoint_requester.get(url=url, headers=self._get_bearer_auth_headers(access_token))
 
-            top_items = [self._create_item(data=entry, item_type=item_type) for entry in data["items"]]
+            top_items = data["items"]
 
             return top_items
         except EndpointRequesterUnauthorisedException as e:
@@ -320,20 +298,34 @@ class SpotifyDataService(SpotifyService):
             error_message = "Failed to make request to Spotify API"
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
+        
+    async def get_top_artists(self, access_token: str, time_range: TimeRange, limit: int) -> list[SpotifyArtist]:
+        top_items_data = await self._get_top_items_data(
+            access_token=access_token, 
+            item_type=SpotifyItemType.ARTIST, 
+            time_range=time_range, 
+            limit=limit
+        )
+        top_artists = [self._create_artist(entry) for entry in top_items_data]
+        return top_artists
+    
+    async def get_top_tracks(self, access_token: str, time_range: TimeRange, limit: int) -> list[SpotifyTrack]:
+        top_items_data = await self._get_top_items_data(
+            access_token=access_token, 
+            item_type=SpotifyItemType.TRACK, 
+            time_range=time_range, 
+            limit=limit
+        )
+        top_tracks = [self._create_track(entry) for entry in top_items_data]
+        return top_tracks
 
     async def get_top_genres(self, access_token: str, time_range: TimeRange, limit: int) -> list[TopGenre]:
-        top_items = await self.get_top_items(
-            access_token=access_token,
-            item_type=SpotifyItemType.ARTIST,
-            time_range=time_range,
-            limit=50
-        )
-        top_artists = [SpotifyArtist(**entry.model_dump()) for entry in top_items]
+        top_artists = await self.get_top_artists(access_token=access_token, time_range=time_range, limit=50)
 
         all_genres = [
             genre
             for artist in top_artists
-                for genre in artist.genres
+            for genre in artist.genres
         ]
         total_genres = len(all_genres)
 
@@ -354,7 +346,7 @@ class SpotifyDataService(SpotifyService):
 
         return sampled_top_genres
 
-    async def get_item_by_id(self, access_token: str, item_id: str, item_type: SpotifyItemType) -> SpotifyItem:
+    async def _get_item_by_id(self, access_token: str, item_id: str, item_type: SpotifyItemType) -> dict:
         """
         Fetches a specific item (track or artist) from the Spotify API using its unique identifier.
 
@@ -385,9 +377,7 @@ class SpotifyDataService(SpotifyService):
 
             data = await self.endpoint_requester.get(url=url, headers=self._get_bearer_auth_headers(access_token))
 
-            item = self._create_item(data=data, item_type=item_type)
-
-            return item
+            return data
         except EndpointRequesterUnauthorisedException as e:
             error_message = "Invalid Spotify API access token"
             logger.error(f"{error_message} - {e}")
@@ -400,13 +390,23 @@ class SpotifyDataService(SpotifyService):
             error_message = "Failed to make request to Spotify API"
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
+        
+    async def get_artist_by_id(self, access_token: str, item_id: str) -> SpotifyArtist:
+        item = await self._get_item_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.ARTIST)
+        artist = self._create_artist(item)
+        return artist
+    
+    async def get_track_by_id(self, access_token: str, item_id: str) -> SpotifyTrack:
+        item = await self._get_item_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.TRACK)
+        track = self._create_track(item)
+        return track
 
-    async def get_many_items_by_ids(
+    async def _get_items_data_by_ids(
             self,
             access_token: str,
             item_ids: list[str],
             item_type: SpotifyItemType
-    ) -> list[SpotifyItem]:
+    ) -> list[dict]:
         try:
             url = f"{self.base_url}/{item_type.value}s"
             params = {"ids": ",".join(item_ids)}
@@ -417,7 +417,7 @@ class SpotifyDataService(SpotifyService):
                 params=params
             )
 
-            items = [self._create_item(data=entry, item_type=item_type) for entry in data[f"{item_type.value}s"]]
+            items = data[f"{item_type.value}s"]
 
             return items
         except EndpointRequesterUnauthorisedException as e:
@@ -432,3 +432,21 @@ class SpotifyDataService(SpotifyService):
             error_message = "Failed to make request to Spotify API"
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
+        
+    async def get_artists_by_ids(self, access_token: str, artist_ids: list[str]) -> list[SpotifyArtist]:
+        items_data = await self._get_items_data_by_ids(
+            access_token=access_token, 
+            item_ids=artist_ids, 
+            item_type=SpotifyItemType.ARTIST
+        )
+        artists = [self._create_artist(entry) for entry in items_data]
+        return artists
+    
+    async def get_tracks_by_ids(self, access_token: str, track_ids: list[str]) -> list[SpotifyTrack]:
+        items_data = await self._get_items_data_by_ids(
+            access_token=access_token, 
+            item_ids=track_ids, 
+            item_type=SpotifyItemType.TRACK
+        )
+        tracks = [self._create_track(entry) for entry in items_data]
+        return tracks

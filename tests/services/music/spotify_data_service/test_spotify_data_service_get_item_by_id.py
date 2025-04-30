@@ -74,7 +74,7 @@ async def test_get_item_by_id_request_failure(spotify_data_service, mock_endpoin
     mock_endpoint_requester.get.side_effect = EndpointRequesterException()
 
     with pytest.raises(SpotifyDataServiceException, match="Request to Spotify API failed"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
 
 
 @pytest.mark.parametrize("item_type", [SpotifyItemType.TRACKS, SpotifyItemType.ARTISTS])
@@ -88,7 +88,7 @@ async def test_get_item_by_id_item_not_found(
     mock_endpoint_requester.get.side_effect = EndpointRequesterNotFoundException()
 
     with pytest.raises(SpotifyDataServiceNotFoundException, match="Requested item not found"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=item_type)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=item_type)
 
 
 @pytest.mark.asyncio
@@ -102,7 +102,7 @@ async def test_get_item_by_id_unauthorised_request(
     mock_spotify_auth_service.refresh_tokens.return_value = mock_request_tokens
 
     with pytest.raises(SpotifyDataServiceException, match="Request to Spotify API failed"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
 
     mock_spotify_auth_service.refresh_tokens.assert_called_once_with(mock_request_tokens.refresh_token)
 
@@ -121,7 +121,7 @@ async def test_get_item_by_id_token_refresh_failure(
     item_id = "1"
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to refresh access token"):
-        await spotify_data_service.get_item_by_id(item_id=item_id, tokens=mock_request_tokens, item_type=item_type)
+        await spotify_data_service._get_item_by_id(item_id=item_id, tokens=mock_request_tokens, item_type=item_type)
 
     mock_spotify_auth_service.refresh_tokens.assert_called_once_with(mock_request_tokens.refresh_token)
     mock_endpoint_requester.get.assert_called_once_with(
@@ -136,7 +136,7 @@ async def test_invalid_api_response_type(spotify_data_service, mock_endpoint_req
     mock_endpoint_requester.get.return_value = "invalid"
 
     with pytest.raises(SpotifyDataServiceException, match="Spotify data not of type dict. Actual type: <class 'str'>"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=item_type)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=item_type)
 
 
 # TRACKS
@@ -156,7 +156,7 @@ async def test_get_item_by_id_track_response_data_missing_fields(
     mock_track_data.pop(missing_attr)
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to create TopItem from Spotify API data"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
 
 
 @pytest.mark.parametrize("none_type_attr", ["id", "name", "explicit", "duration_ms", "popularity"])
@@ -172,7 +172,7 @@ async def test_get_item_by_id_track_response_data_none_type_fields(
     mock_track_data[none_type_attr] = None
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to create TopItem from Spotify API data"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
 
 
 @pytest.mark.parametrize("invalid_attr", ["external_urls", "album", "artists"])
@@ -188,7 +188,7 @@ async def test_get_item_by_id_track_response_data_invalid_field_types(
     mock_track_data[invalid_attr] = "invalid"
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to create TopItem from Spotify API data"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.TRACKS)
 
 
 @pytest.mark.asyncio
@@ -214,7 +214,7 @@ async def test_get_item_by_id_track_success(
     )
     expected_response = SpotifyItemResponse(data=expected_track, tokens=mock_request_tokens)
 
-    response = await spotify_data_service.get_item_by_id(
+    response = await spotify_data_service._get_item_by_id(
         item_id="1",
         tokens=mock_request_tokens,
         item_type=SpotifyItemType.TRACKS
@@ -237,7 +237,7 @@ async def test_get_item_by_id_artist_response_data_missing_fields(
     mock_artist_data.pop(missing_attr)
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to create TopItem from Spotify API data"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.ARTISTS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.ARTISTS)
 
 
 @pytest.mark.parametrize("none_type_attr", ["id", "name"])
@@ -253,7 +253,7 @@ async def test_get_item_by_id_artist_response_data_none_type_fields(
     mock_artist_data[none_type_attr] = None
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to create TopItem from Spotify API data"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.ARTISTS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.ARTISTS)
 
 
 @pytest.mark.parametrize("invalid_attr", ["images", "external_urls"])
@@ -269,7 +269,7 @@ async def test_get_item_by_id_artist_response_data_invalid_field_types(
     mock_artist_data[invalid_attr] = None
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to create TopItem from Spotify API data"):
-        await spotify_data_service.get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.ARTISTS)
+        await spotify_data_service._get_item_by_id(item_id="1", tokens=mock_request_tokens, item_type=SpotifyItemType.ARTISTS)
 
 
 @pytest.mark.asyncio
@@ -291,7 +291,7 @@ async def test_get_item_by_id_artist_success(
     )
     expected_response = SpotifyItemResponse(data=expected_artist, tokens=mock_request_tokens)
 
-    response = await spotify_data_service.get_item_by_id(
+    response = await spotify_data_service._get_item_by_id(
         item_id="1",
         tokens=mock_request_tokens,
         item_type=SpotifyItemType.ARTISTS

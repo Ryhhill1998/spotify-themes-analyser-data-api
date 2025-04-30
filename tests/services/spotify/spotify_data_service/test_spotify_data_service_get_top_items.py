@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock
+
 import pytest
 
 from api.services.endpoint_requester import EndpointRequesterException, EndpointRequesterUnauthorisedException
@@ -9,10 +11,8 @@ TEST_URL = "http://test-url.com"
 # 2. Test _get_top_items_data raises SpotifyDataServiceException if EndpointRequesterException occurs.
 # 3. Test _get_top_items_data raises KeyError if items key not present in data.
 # 4. Test _get_top_items_data returns expected response.
-# 5. Test get_top_artists raises Exception if _get_top_items_data does not return a list.
-# 6. Test get_top_tracks raises Exception if _get_top_items_data does not return a list.
-# 7. Test get_top_artists calls _get_top_items_data with expected params.
-# 8. Test get_top_tracks calls _get_top_items_data with expected params.
+# 5. Test get_top_artists calls _get_top_items_data with expected params.
+# 6. Test get_top_tracks calls _get_top_items_data with expected params.
 
 
 @pytest.fixture
@@ -89,7 +89,10 @@ async def test_get_top_items_raises_spotify_data_service_unauthorised_exception_
 
 # 2. Test _get_top_items_data raises SpotifyDataServiceException if EndpointRequesterException occurs.
 @pytest.mark.asyncio
-async def test_get_top_items_request_failure(spotify_data_service, mock_endpoint_requester):
+async def test__get_top_items_data_raises_spotify_data_service_exception_if_endpoint_requester_exception_occurs(
+        spotify_data_service,
+        mock_endpoint_requester
+):
     mock_endpoint_requester.get.side_effect = EndpointRequesterException()
 
     with pytest.raises(SpotifyDataServiceException, match="Failed to make request to Spotify API"):
@@ -103,7 +106,10 @@ async def test_get_top_items_request_failure(spotify_data_service, mock_endpoint
 
 # 3. Test _get_top_items_data raises KeyError if items key not present in data.
 @pytest.mark.asyncio
-async def test_invalid_api_response_type(spotify_data_service, mock_endpoint_requester):
+async def test__get_top_items_data_raises_spotify_data_service_exception_if_items_not_in_data(
+        spotify_data_service,
+        mock_endpoint_requester
+):
     mock_endpoint_requester.get.return_value = {"not_items": []}
 
     with pytest.raises(SpotifyDataServiceException, match="No items key present in API data"):
@@ -113,3 +119,52 @@ async def test_invalid_api_response_type(spotify_data_service, mock_endpoint_req
             time_range="medium_term",
             limit=0
         )
+
+
+# 4. Test _get_top_items_data returns expected response.
+@pytest.mark.asyncio
+async def test__get_top_items_data_returns_expected_response(spotify_data_service, mock_endpoint_requester):
+    mock_endpoint_requester.get.return_value = {"items": "response_items"}
+
+    response = await spotify_data_service._get_top_items_data(
+        access_token="access_token",
+        item_type=SpotifyItemType.TRACK,
+        time_range="medium_term",
+        limit=0
+    )
+
+    assert response == "response_items"
+
+
+# 5. Test get_top_artists calls _get_top_items_data with expected params.
+@pytest.mark.asyncio
+async def test_get_top_artists_calls__get_top_items_data_with_expected_params(spotify_data_service):
+    mock__get_top_items_data = AsyncMock()
+    mock__get_top_items_data.return_value = []
+    spotify_data_service._get_top_items_data = mock__get_top_items_data
+
+    await spotify_data_service.get_top_artists(access_token="access_token", time_range="medium_term", limit=0)
+
+    spotify_data_service._get_top_items_data.assert_called_once_with(
+        access_token="access_token",
+        item_type=SpotifyItemType.ARTIST,
+        time_range="medium_term",
+        limit=0
+    )
+
+
+# 6. Test get_top_tracks calls _get_top_items_data with expected params.
+@pytest.mark.asyncio
+async def test_get_top_tracks_calls__get_top_items_data_with_expected_params(spotify_data_service):
+    mock__get_top_items_data = AsyncMock()
+    mock__get_top_items_data.return_value = []
+    spotify_data_service._get_top_items_data = mock__get_top_items_data
+
+    await spotify_data_service.get_top_tracks(access_token="access_token", time_range="medium_term", limit=0)
+
+    spotify_data_service._get_top_items_data.assert_called_once_with(
+        access_token="access_token",
+        item_type=SpotifyItemType.TRACK,
+        time_range="medium_term",
+        limit=0
+    )

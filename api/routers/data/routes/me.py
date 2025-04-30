@@ -32,7 +32,7 @@ async def get_profile(
     access_token : AccessToken
         The Spotify API access token of the signed-in user.
     spotify_data_service : SpotifyDataServiceDependency
-        The class used to retrieve data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
 
     Returns
     -------
@@ -41,9 +41,8 @@ async def get_profile(
 
     Raises
     ------
-    HTTPException (401)
+    HTTPException
         Raised with a 401 Unauthorised status code if the access token is invalid or expired.
-    HTTPException (500)
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's
         profile from Spotify.
     """
@@ -72,7 +71,7 @@ async def get_top_artists(
     access_token : AccessToken
         The Spotify API access token of the signed-in user.
     spotify_data_service : SpotifyDataServiceDependency
-        The class used to retrieve data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
     time_range : TimeRange
         The time range to retrieve the top artists for.
     limit : int
@@ -85,9 +84,8 @@ async def get_top_artists(
 
     Raises
     ------
-    HTTPException (401)
+    HTTPException
         Raised with a 401 Unauthorised status code if the access token is invalid or expired.
-    HTTPException (500)
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's top
         artists from Spotify.
     """
@@ -124,7 +122,7 @@ async def get_top_tracks(
     access_token : AccessToken
         The Spotify API access token of the signed-in user.
     spotify_data_service : SpotifyDataServiceDependency
-        The class used to retrieve data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
     time_range : TimeRange
         The time range to retrieve the top tracks for.
     limit : int
@@ -137,9 +135,8 @@ async def get_top_tracks(
 
     Raises
     ------
-    HTTPException (401)
+    HTTPException
         Raised with a 401 Unauthorised status code if the access token is invalid or expired.
-    HTTPException (500)
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's top
         tracks from Spotify.
     """
@@ -176,7 +173,7 @@ async def get_top_genres(
     access_token : AccessToken
         The Spotify API access token of the signed-in user.
     spotify_data_service : SpotifyDataServiceDependency
-        The class used to retrieve data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
     time_range : TimeRange
         The time range to retrieve the top genres for.
     limit : int
@@ -189,9 +186,8 @@ async def get_top_genres(
 
     Raises
     ------
-    HTTPException (401)
+    HTTPException
         Raised with a 401 Unauthorised status code if the access token is invalid or expired.
-    HTTPException (500)
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the user's top
         genres from Spotify.
     """
@@ -228,7 +224,7 @@ async def get_top_emotions(
     access_token : AccessToken
         The Spotify API access token of the signed-in user.
     insights_service : InsightsServiceDependency
-        Dependency for analyzing and retrieving the top emotions in the user's Spotify listening history.
+        The object used to extract the top emotions from the user's Spotify listening history.
     time_range : TimeRange
         The time range to retrieve the top tracks for.
     limit : int

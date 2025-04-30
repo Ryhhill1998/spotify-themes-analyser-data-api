@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import JSONResponse
 from loguru import logger
 
 from api.dependencies import SpotifyDataServiceDependency
@@ -20,15 +19,17 @@ async def get_artist_by_id(
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
     artist_id : str
         The Spotify artist ID.
     spotify_data_service : SpotifyDataServiceDependency
-        Dependency for retrieving the artist data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing artist details with updated token cookies.
+    SpotifyArtist
+        The requested artist.
 
     Raises
     ------
@@ -54,34 +55,38 @@ async def get_artist_by_id(
 @router.post("/artists", response_model=list[SpotifyArtist])
 async def get_several_artists_by_ids(
         access_token: AccessToken,
-        requested_items: RequestedItems,
+        requested_artists: RequestedItems,
         spotify_data_service: SpotifyDataServiceDependency
-) -> SpotifyArtist:
+) -> list[SpotifyArtist]:
     """
-    Retrieves details about a specific artist by their ID.
+    Retrieves details about several artists by their IDs.
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
+    requested_artists : RequestedItems
+        The requested artist IDs.
     spotify_data_service : SpotifyDataServiceDependency
-        Dependency for retrieving the artist data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing artist details with updated token cookies.
+    list[SpotifyArtist]
+        The list of requested artists.
 
     Raises
     ------
     HTTPException
-        Raised with a 404 Not Found status code if the requested Spotify artist was not found.
+        Raised with a 404 Not Found status code if the requested Spotify artists were not found.
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the requested
-        artist from Spotify.
+        artists from Spotify.
     """
 
     try:
         artists = await spotify_data_service.get_artists_by_ids(
             access_token=access_token.access_token,
-            item_ids=requested_items.ids
+            artist_ids=requested_artists.ids
         )
         return artists
     except SpotifyDataServiceNotFoundException as e:

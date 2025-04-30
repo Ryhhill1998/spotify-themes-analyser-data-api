@@ -1,4 +1,4 @@
-from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
 
 BASE_URL = "/data/artists"
 

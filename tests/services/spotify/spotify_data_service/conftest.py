@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from api.services.music.spotify_auth_service import SpotifyAuthService
-from api.services.music.spotify_data_service import SpotifyDataService
+from api.services.spotify.spotify_auth_service import SpotifyAuthService
+from api.services.spotify.spotify_data_service import SpotifyDataService
 
 TEST_URL = "http://test-url.com"
 TEST_CLIENT_ID = "client_id"

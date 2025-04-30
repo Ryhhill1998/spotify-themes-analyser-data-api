@@ -4,7 +4,7 @@ import pytest
 
 from api.models.models import TaggedLyricsResponse
 from api.services.insights_service import InsightsServiceException
-from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
 
 BASE_URL = "/data/tracks"
 

@@ -14,7 +14,7 @@ from api.models.models import (
 from api.services.analysis_service import AnalysisServiceException
 from api.services.insights_service import InsightsServiceException
 from api.services.lyrics_service import LyricsServiceException
-from api.services.music.spotify_data_service import SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceException
 
 # 1. Test that get_top_emotions raises InsightsServiceException if any of its dependency services fail.
 # 2. Test that get_top_emotions raises InsightsServiceException if data validation fails.

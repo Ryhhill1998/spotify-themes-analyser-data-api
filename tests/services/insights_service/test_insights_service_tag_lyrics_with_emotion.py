@@ -11,7 +11,7 @@ from api.models.models import (
 from api.services.analysis_service import AnalysisService, AnalysisServiceException
 from api.services.insights_service import InsightsService, InsightsServiceException
 from api.services.lyrics_service import LyricsService, LyricsServiceException
-from api.services.music.spotify_data_service import SpotifyDataService, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataService, SpotifyDataServiceException
 
 TEST_URL = "http://test-url.com"
 

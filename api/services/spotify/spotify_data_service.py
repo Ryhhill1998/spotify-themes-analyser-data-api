@@ -9,7 +9,7 @@ from api.models.models import SpotifyItem, SpotifyTrack, SpotifyArtist, SpotifyT
     SpotifyArtistData, SpotifyProfile, SpotifyProfileData, TopGenre
 from api.services.endpoint_requester import EndpointRequester, EndpointRequesterUnauthorisedException, \
     EndpointRequesterException, EndpointRequesterNotFoundException
-from api.services.music.spotify_service import SpotifyService
+from api.services.spotify.spotify_service import SpotifyService
 
 
 class SpotifyItemType(str, Enum):
@@ -61,7 +61,7 @@ class SpotifyDataServiceNotFoundException(SpotifyDataServiceException):
 
 class SpotifyDataService(SpotifyService):
     """
-    Service responsible for interacting with Spotify's API to fetch user-related music data.
+    Service responsible for interacting with Spotify's API to fetch user-related spotify data.
 
     This class provides methods to retrieve a user's top tracks and artists, as well as fetching
     specific tracks and artists by their Spotify ID.

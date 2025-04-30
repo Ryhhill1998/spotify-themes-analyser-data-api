@@ -8,7 +8,7 @@ from pydantic import Field
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
 from api.models.models import SpotifyProfile, SpotifyArtist, AccessToken, SpotifyTrack, TopGenre, TopEmotion
 from api.services.insights_service import InsightsServiceException
-from api.services.music.spotify_data_service import SpotifyDataServiceException, SpotifyDataServiceUnauthorisedException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceException, SpotifyDataServiceUnauthorisedException
 
 router = APIRouter(prefix="/me")
 

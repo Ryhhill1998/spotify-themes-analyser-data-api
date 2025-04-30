@@ -4,7 +4,7 @@ import pytest
 
 from api.models.models import TopEmotionsResponse, SpotifyItemResponse
 from api.services.insights_service import InsightsServiceException
-from api.services.music.spotify_data_service import SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceException
 
 BASE_URL = "/data/me/top"
 

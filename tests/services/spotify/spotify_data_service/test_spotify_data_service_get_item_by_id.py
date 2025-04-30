@@ -3,8 +3,8 @@ import pytest
 from api.models.models import SpotifyTrack, SpotifyTrackArtist, SpotifyImage, SpotifyArtist, SpotifyItemResponse
 from api.services.endpoint_requester import EndpointRequesterException, EndpointRequesterUnauthorisedException, \
     EndpointRequesterNotFoundException
-from api.services.music.spotify_auth_service import SpotifyAuthServiceException
-from api.services.music.spotify_data_service import SpotifyDataServiceException, SpotifyItemType, \
+from api.services.spotify.spotify_auth_service import SpotifyAuthServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceException, SpotifyItemType, \
     SpotifyDataServiceNotFoundException
 
 TEST_URL = "http://test-url.com"

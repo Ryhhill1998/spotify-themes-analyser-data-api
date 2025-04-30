@@ -3,7 +3,7 @@ from loguru import logger
 
 from api.dependencies import SpotifyDataServiceDependency
 from api.models.models import SpotifyArtist, AccessToken, RequestedItems
-from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
 
 router = APIRouter()
 

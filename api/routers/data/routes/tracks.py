@@ -5,7 +5,7 @@ from loguru import logger
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
 from api.models.models import Emotion, EmotionalTagsResponse, SpotifyTrack, AccessToken, RequestedItems
 from api.services.insights_service import InsightsServiceException
-from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
 
 router = APIRouter()
 
@@ -109,7 +109,7 @@ async def get_lyrics_tagged_with_emotion(
         insights_service: InsightsServiceDependency
 ) -> EmotionalTagsResponse:
     """
-    Retrieves the user's top emotional responses based on their music listening history.
+    Retrieves the user's top emotional responses based on their spotify listening history.
 
     Parameters
     ----------

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from api.dependencies import SpotifyAuthServiceDependency
 from api.models.models import TokenData
-from api.services.music.spotify_auth_service import SpotifyAuthServiceException
+from api.services.spotify.spotify_auth_service import SpotifyAuthServiceException
 
 router = APIRouter()
 

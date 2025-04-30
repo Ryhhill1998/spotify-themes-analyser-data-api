@@ -7,7 +7,7 @@ from api.dependencies import get_tokens_from_cookies, get_spotify_data_service, 
 from api.main import app
 from api.models.models import TokenData, SpotifyItemResponse
 from api.services.insights_service import InsightsService
-from api.services.music.spotify_data_service import SpotifyDataService
+from api.services.spotify.spotify_data_service import SpotifyDataService
 
 
 @pytest.fixture

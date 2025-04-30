@@ -151,7 +151,7 @@ async def get_top_emotions(
         access_token: AccessToken,
         insights_service: InsightsServiceDependency,
         time_range: TimeRange,
-        limit: Annotated[int, Field(ge=1, le=15)] = 15
+        limit: Annotated[int, Field(ge=1, le=15)] = 5
 ) -> JSONResponse:
     """
     Retrieves the user's top emotional responses based on their music listening history.

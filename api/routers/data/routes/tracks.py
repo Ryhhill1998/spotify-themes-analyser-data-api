@@ -6,7 +6,7 @@ from loguru import logger
 
 from api.data_structures.enums import TopItemType
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
-from api.data_structures.models import Emotion, EmotionalTagsResponse, SpotifyTrack, AccessToken
+from api.data_structures.models import Emotion, EmotionalTagsResponse, SpotifyTrack, AccessToken, RequestedItems
 from api.services.insights_service import InsightsServiceException
 from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
 
@@ -46,6 +46,50 @@ async def get_track_by_id(
         track = await spotify_data_service.get_item_by_id(
             access_token=access_token.access_token,
             item_id=track_id,
+            item_type=TopItemType.TRACK
+        )
+        return track
+    except SpotifyDataServiceNotFoundException as e:
+        error_message = "Could not find the requested track"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
+    except SpotifyDataServiceException as e:
+        error_message = "Failed to retrieve the requested track"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
+    
+    
+@router.post("/tracks", response_model=list[SpotifyTrack])
+async def get_several_tracks_by_ids(
+        access_token: AccessToken,
+        requested_items: RequestedItems,
+        spotify_data_service: SpotifyDataServiceDependency
+) -> SpotifyTrack:
+    """
+    Retrieves details about a specific track by their ID.
+
+    Parameters
+    ----------
+    spotify_data_service : SpotifyDataServiceDependency
+        Dependency for retrieving the track data from the Spotify API.
+
+    Returns
+    -------
+    JSONResponse
+        A JSON response containing track details with updated token cookies.
+
+    Raises
+    ------
+    HTTPException
+        Raised with a 404 Not Found status code if the requested Spotify track was not found.
+        Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the requested
+        track from Spotify.
+    """
+
+    try:
+        track = await spotify_data_service.get_many_items_by_ids(
+            access_token=access_token.access_token,
+            item_ids=requested_items.ids,
             item_type=TopItemType.TRACK
         )
         return track

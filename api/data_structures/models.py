@@ -7,6 +7,10 @@ class AccessToken(BaseModel):
     access_token: str
 
 
+class RequestedItems(BaseModel):
+    ids: list[str]
+
+
 class TokenData(BaseModel):
     """
     Represents the Spotify authentication tokens for a user.

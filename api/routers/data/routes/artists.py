@@ -66,7 +66,7 @@ async def get_several_artists_by_ids(
     access_token : AccessToken
         The Spotify API access token of the signed-in user.
     requested_artists : RequestedItems
-        The requested artist IDs.
+        The requested artists IDs.
     spotify_data_service : SpotifyDataServiceDependency
         The object used to retrieve data from the Spotify API.
 

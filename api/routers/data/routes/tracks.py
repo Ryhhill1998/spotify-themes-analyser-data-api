@@ -7,10 +7,10 @@ from api.models.models import Emotion, EmotionalTagsResponse, SpotifyTrack, Acce
 from api.services.insights_service import InsightsServiceException
 from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
 
-router = APIRouter(prefix="/tracks")
+router = APIRouter()
 
 
-@router.post("/{track_id}", response_model=SpotifyTrack)
+@router.post("/tracks/{track_id}", response_model=SpotifyTrack)
 async def get_track_by_id(
         access_token: AccessToken,
         track_id: str,
@@ -21,15 +21,17 @@ async def get_track_by_id(
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
     track_id : str
         The Spotify track ID.
     spotify_data_service : SpotifyDataServiceDependency
-        Dependency for retrieving the track data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing track details with updated token cookies.
+    SpotifyTrack
+        The requested track.
 
     Raises
     ------
@@ -55,34 +57,38 @@ async def get_track_by_id(
 @router.post("/tracks", response_model=list[SpotifyTrack])
 async def get_several_tracks_by_ids(
         access_token: AccessToken,
-        requested_items: RequestedItems,
+        requested_tracks: RequestedItems,
         spotify_data_service: SpotifyDataServiceDependency
-) -> SpotifyTrack:
+) -> list[SpotifyTrack]:
     """
     Retrieves details about a specific track by their ID.
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
+    requested_tracks : RequestedItems
+        The requested tracks IDs.
     spotify_data_service : SpotifyDataServiceDependency
-        Dependency for retrieving the track data from the Spotify API.
+        The object used to retrieve data from the Spotify API.
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing track details with updated token cookies.
+    list[SpotifyTrack]
+        The list of requested tracks.
 
     Raises
     ------
     HTTPException
-        Raised with a 404 Not Found status code if the requested Spotify track was not found.
+        Raised with a 404 Not Found status code if the requested Spotify tracks were not found.
         Raised with a 500 Internal Server Error status code if another exception occurs while retrieving the requested
-        track from Spotify.
+        tracks from Spotify.
     """
 
     try:
         tracks = await spotify_data_service.get_tracks_by_ids(
             access_token=access_token.access_token,
-            item_ids=requested_items.ids
+            track_ids=requested_tracks.ids
         )
         return tracks
     except SpotifyDataServiceNotFoundException as e:
@@ -95,7 +101,7 @@ async def get_several_tracks_by_ids(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
 
 
-@router.post("/{track_id}/lyrics/emotional-tags/{emotion}", response_model=EmotionalTagsResponse)
+@router.post("/tracks/{track_id}/lyrics/emotional-tags/{emotion}", response_model=EmotionalTagsResponse)
 async def get_lyrics_tagged_with_emotion(
         access_token: AccessToken,
         track_id: str,
@@ -107,17 +113,19 @@ async def get_lyrics_tagged_with_emotion(
 
     Parameters
     ----------
+    access_token : AccessToken
+        The Spotify API access token of the signed-in user.
     track_id : str
         The ID of the track being requested.
     emotion : Emotion
         The emotion requested to tag the lyrics with.
     insights_service : InsightsServiceDependency
-        Dependency for generating lyrics tagged with the requested emotion.
+        The object used to generate lyrics tagged with the requested emotion.
 
     Returns
     -------
-    JSONResponse
-        A JSON response containing a list of top emotional responses with updated token cookies.
+    EmotionalTagsResponse
+        The track_id, emotion and lyrics tagged with the requested emotion.
 
     Raises
     ------

@@ -215,13 +215,12 @@ class InsightsService:
 
         try:
             # get top tracks and refreshed tokens (if expired)
-            top_items = await self.spotify_data_service._get_top_items_data(
+            top_tracks = await self.spotify_data_service.get_top_tracks(
                 access_token=access_token,
-                item_type=SpotifyItemType.TRACK,
-                time_range=time_range
+                time_range=time_range,
+                limit=30
             )
-            self._check_data_not_empty(data=top_items, label="top tracks")
-            top_tracks = [SpotifyTrack(**item.model_dump()) for item in top_items]
+            self._check_data_not_empty(data=top_tracks, label="top tracks")
 
             # get lyrics for each track
             lyrics_requests = [
@@ -289,12 +288,10 @@ class InsightsService:
         """
 
         try:
-            track_response = await self.spotify_data_service._get_item_by_id(
+            track = await self.spotify_data_service.get_track_by_id(
                 access_token=access_token,
-                item_id=track_id,
-                item_type=SpotifyItemType.TRACK
+                item_id=track_id
             )
-            track = SpotifyTrack(**track_response.model_dump())
 
             lyrics_request = LyricsRequest(track_id=track.id, artist_name=track.artist.name, track_title=track.name)
             lyrics_response = await self.lyrics_service.get_lyrics(lyrics_request)

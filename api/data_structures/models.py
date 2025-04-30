@@ -11,6 +11,11 @@ class RequestedItems(BaseModel):
     ids: list[str]
 
 
+class TopGenre(BaseModel):
+    name: str
+    percentage: float
+
+
 class TokenData(BaseModel):
     """
     Represents the Spotify authentication tokens for a user.

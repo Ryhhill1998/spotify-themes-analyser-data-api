@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import Field
 
-from api.data_structures.enums import TopItemTimeRange, TopItemType
+from api.data_structures.enums import TimeRange, SpotifyItemType
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
 from api.data_structures.models import SpotifyProfile, SpotifyArtist, AccessToken
 from api.services.insights_service import InsightsServiceException
@@ -32,7 +32,7 @@ async def get_profile(
 async def get_top_artists(
         access_token: AccessToken,
         spotify_data_service: SpotifyDataServiceDependency,
-        time_range: TopItemTimeRange,
+        time_range: TimeRange,
         limit: Annotated[int, Field(ge=10, le=50)] = 50
 ) -> list[SpotifyArtist]:
     """
@@ -40,7 +40,7 @@ async def get_top_artists(
 
     Parameters
     ----------
-    time_range : TopItemTimeRange
+    time_range : TimeRange
         The time range to retrieve the top artists for.
     limit : int
         Limit to specify the number of top artists to retrieve (default is 50, must be at least 10 but no more than 50).
@@ -60,7 +60,7 @@ async def get_top_artists(
     try:
         top_artists = await spotify_data_service.get_top_items(
             access_token=access_token.access_token,
-            item_type=TopItemType.ARTIST,
+            item_type=SpotifyItemType.ARTIST,
             time_range=time_range,
             limit=limit
         )
@@ -79,7 +79,7 @@ async def get_top_artists(
 async def get_top_tracks(
         access_token: AccessToken,
         spotify_data_service: SpotifyDataServiceDependency,
-        time_range: TopItemTimeRange,
+        time_range: TimeRange,
         limit: Annotated[int, Field(ge=10, le=50)] = 50
 ) -> JSONResponse:
     """
@@ -87,7 +87,7 @@ async def get_top_tracks(
 
     Parameters
     ----------
-    time_range : TopItemTimeRange
+    time_range : TimeRange
         The time range to retrieve the top tracks for.
     limit : int
         Limit to specify the number of top tracks to retrieve (default is 50, must be at least 10 but no more than 50).
@@ -107,7 +107,7 @@ async def get_top_tracks(
     try:
         top_tracks = await spotify_data_service.get_top_items(
             access_token=access_token.access_token,
-            item_type=TopItemType.TRACK,
+            item_type=SpotifyItemType.TRACK,
             time_range=time_range,
             limit=limit
         )
@@ -122,11 +122,35 @@ async def get_top_tracks(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
 
 
+@router.post("/top/genres")
+async def get_top_genres(
+        access_token: AccessToken,
+        spotify_data_service: SpotifyDataServiceDependency,
+        time_range: TimeRange,
+        limit: Annotated[int, Field(ge=1)] = 5
+):
+    try:
+        top_genres = await spotify_data_service.get_top_genres(
+            access_token=access_token.access_token,
+            time_range=time_range,
+            limit=limit
+        )
+        return top_genres
+    except SpotifyDataServiceUnauthorisedException as e:
+        error_message = "Invalid access token"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_message)
+    except SpotifyDataServiceException as e:
+        error_message = "Failed to retrieve the user's top genres"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
+
+
 @router.post("/top/emotions")
 async def get_top_emotions(
         access_token: AccessToken,
         insights_service: InsightsServiceDependency,
-        time_range: TopItemTimeRange,
+        time_range: TimeRange,
         limit: Annotated[int, Field(ge=1, le=15)] = 15
 ) -> JSONResponse:
     """

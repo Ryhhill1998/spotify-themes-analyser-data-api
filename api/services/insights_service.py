@@ -3,7 +3,7 @@ from collections import defaultdict
 import pydantic
 from loguru import logger
 
-from api.data_structures.enums import TopItemTimeRange, TopItemType
+from api.data_structures.enums import TimeRange, SpotifyItemType
 from api.data_structures.models import LyricsRequest, TopEmotion, EmotionalProfileResponse, EmotionalProfileRequest, \
     EmotionalTagsRequest, Emotion, SpotifyTrack, EmotionalTagsResponse
 from api.services.analysis_service import AnalysisService, AnalysisServiceException
@@ -189,7 +189,7 @@ class InsightsService:
     async def get_top_emotions(
             self,
             access_token: str,
-            time_range: TopItemTimeRange,
+            time_range: TimeRange,
             limit: int
     ) -> list[TopEmotion]:
         """
@@ -217,7 +217,7 @@ class InsightsService:
             # get top tracks and refreshed tokens (if expired)
             top_items = await self.spotify_data_service.get_top_items(
                 access_token=access_token,
-                item_type=TopItemType.TRACK,
+                item_type=SpotifyItemType.TRACK,
                 time_range=time_range
             )
             self._check_data_not_empty(data=top_items, label="top tracks")
@@ -292,7 +292,7 @@ class InsightsService:
             track_response = await self.spotify_data_service.get_item_by_id(
                 access_token=access_token,
                 item_id=track_id,
-                item_type=TopItemType.TRACK
+                item_type=SpotifyItemType.TRACK
             )
             track = SpotifyTrack(**track_response.model_dump())
 

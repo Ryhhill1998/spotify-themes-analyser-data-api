@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from api.data_structures.enums import TopItemType
+from api.data_structures.enums import SpotifyItemType
 from api.dependencies import SpotifyDataServiceDependency
 from api.data_structures.models import SpotifyArtist, AccessToken, RequestedItems
 from api.services.music.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
@@ -43,7 +43,7 @@ async def get_artist_by_id(
         artist = await spotify_data_service.get_item_by_id(
             access_token=access_token.access_token,
             item_id=artist_id,
-            item_type=TopItemType.ARTIST
+            item_type=SpotifyItemType.ARTIST
         )
         return artist
     except SpotifyDataServiceNotFoundException as e:
@@ -87,7 +87,7 @@ async def get_several_artists_by_ids(
         artist = await spotify_data_service.get_many_items_by_ids(
             access_token=access_token.access_token,
             item_ids=requested_items.ids,
-            item_type=TopItemType.ARTIST
+            item_type=SpotifyItemType.ARTIST
         )
         return artist
     except SpotifyDataServiceNotFoundException as e:

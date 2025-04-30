@@ -1,11 +1,12 @@
 import urllib.parse
+from collections import defaultdict
 
 from loguru import logger
 import pydantic
 
-from api.data_structures.enums import TopItemType, TopItemTimeRange
+from api.data_structures.enums import SpotifyItemType, TimeRange
 from api.data_structures.models import SpotifyItem, SpotifyTrack, SpotifyArtist, SpotifyTrackArtist, SpotifyTrackData, \
-    SpotifyArtistData, SpotifyProfile, SpotifyProfileData
+    SpotifyArtistData, SpotifyProfile, SpotifyProfileData, TopGenre
 from api.services.endpoint_requester import EndpointRequester, EndpointRequesterUnauthorisedException, \
     EndpointRequesterException, EndpointRequesterNotFoundException
 from api.services.music.spotify_service import SpotifyService
@@ -230,7 +231,7 @@ class SpotifyDataService(SpotifyService):
 
         return top_artist
 
-    def _create_item(self, data: dict, item_type: TopItemType) -> SpotifyItem:
+    def _create_item(self, data: dict, item_type: SpotifyItemType) -> SpotifyItem:
         """
         Creates a TopItem (TopArtist or TopTrack) object based on the specified item type.
 
@@ -238,7 +239,7 @@ class SpotifyDataService(SpotifyService):
         ----------
         data : dict
             The item data received from Spotify's API.
-        item_type : ItemType
+        item_type : SpotifyItemType
             The type of item to create (TRACKS or ARTISTS).
 
         Returns
@@ -253,9 +254,9 @@ class SpotifyDataService(SpotifyService):
         """
 
         try:
-            if item_type == TopItemType.TRACK:
+            if item_type == SpotifyItemType.TRACK:
                 return self._create_track(data=data)
-            elif item_type == TopItemType.ARTIST:
+            elif item_type == SpotifyItemType.ARTIST:
                 return self._create_artist(data=data)
             else:
                 error_message = f"Invalid item_type: {item_type}"
@@ -273,8 +274,8 @@ class SpotifyDataService(SpotifyService):
     async def get_top_items(
             self,
             access_token: str,
-            item_type: TopItemType,
-            time_range: TopItemTimeRange,
+            item_type: SpotifyItemType,
+            time_range: TimeRange,
             limit: int = 30
     ) -> list[SpotifyItem]:
         """
@@ -282,7 +283,7 @@ class SpotifyDataService(SpotifyService):
 
         Parameters
         ----------
-        item_type : ItemType
+        item_type : SpotifyItemType
             The type of items to retrieve (TRACKS or ARTISTS).
         time_range : str
             The time range for retrieving top items.
@@ -320,7 +321,40 @@ class SpotifyDataService(SpotifyService):
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
 
-    async def get_item_by_id(self, access_token: str, item_id: str, item_type: TopItemType) -> SpotifyItem:
+    async def get_top_genres(self, access_token: str, time_range: TimeRange, limit: int) -> list[TopGenre]:
+        top_items = await self.get_top_items(
+            access_token=access_token,
+            item_type=SpotifyItemType.ARTIST,
+            time_range=time_range,
+            limit=50
+        )
+        top_artists = [SpotifyArtist(**entry.model_dump()) for entry in top_items]
+
+        all_genres = [
+            genre
+            for artist in top_artists
+                for genre in artist.genres
+        ]
+        total_genres = len(all_genres)
+
+        genres_map = defaultdict(int)
+
+        for genre in all_genres:
+            genres_map[genre] += 1
+
+        top_genres = []
+
+        for genre, freq in genres_map.items():
+            percentage = round(100 * freq / total_genres)
+            top_genre = TopGenre(name=genre, percentage=percentage)
+            top_genres.append(top_genre)
+
+        top_genres.sort(key=lambda genre: genre.percentage, reverse=True)
+        sampled_top_genres = top_genres[:limit]
+
+        return sampled_top_genres
+
+    async def get_item_by_id(self, access_token: str, item_id: str, item_type: SpotifyItemType) -> SpotifyItem:
         """
         Fetches a specific item (track or artist) from the Spotify API using its unique identifier.
 
@@ -328,7 +362,7 @@ class SpotifyDataService(SpotifyService):
         ----------
         item_id : str
             The unique identifier of the item (track or artist) to retrieve.
-        item_type : ItemType
+        item_type : SpotifyItemType
             The type of the item being requested (e.g., TRACKS or ARTISTS).
 
         Returns
@@ -371,7 +405,7 @@ class SpotifyDataService(SpotifyService):
             self,
             access_token: str,
             item_ids: list[str],
-            item_type: TopItemType
+            item_type: SpotifyItemType
     ) -> list[SpotifyItem]:
         try:
             url = f"{self.base_url}/{item_type.value}s"

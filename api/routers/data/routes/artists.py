@@ -40,11 +40,7 @@ async def get_artist_by_id(
     """
 
     try:
-        artist = await spotify_data_service._get_item_by_id(
-            access_token=access_token.access_token,
-            item_id=artist_id,
-            item_type=SpotifyItemType.ARTIST
-        )
+        artist = await spotify_data_service.get_artist_by_id(access_token=access_token.access_token, item_id=artist_id)
         return artist
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested artist"
@@ -84,17 +80,16 @@ async def get_several_artists_by_ids(
     """
 
     try:
-        artist = await spotify_data_service._get_items_data_by_ids(
+        artists = await spotify_data_service.get_artists_by_ids(
             access_token=access_token.access_token,
-            item_ids=requested_items.ids,
-            item_type=SpotifyItemType.ARTIST
+            item_ids=requested_items.ids
         )
-        return artist
+        return artists
     except SpotifyDataServiceNotFoundException as e:
-        error_message = "Could not find the requested artist"
+        error_message = "Could not find the requested artists"
         logger.error(f"{error_message} - {e}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
     except SpotifyDataServiceException as e:
-        error_message = "Failed to retrieve the requested artist"
+        error_message = "Failed to retrieve the requested artists"
         logger.error(f"{error_message} - {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)

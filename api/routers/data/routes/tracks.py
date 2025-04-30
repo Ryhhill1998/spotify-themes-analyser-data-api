@@ -15,7 +15,7 @@ router = APIRouter(prefix="/tracks")
 
 @router.post("/{track_id}", response_model=SpotifyTrack)
 async def get_track_by_id(
-        access_token: Annotated[str, Body()],
+        access_token: AccessToken,
         track_id: str,
         spotify_data_service: SpotifyDataServiceDependency
 ) -> SpotifyTrack:
@@ -43,11 +43,7 @@ async def get_track_by_id(
     """
 
     try:
-        track = await spotify_data_service._get_item_by_id(
-            access_token=access_token.access_token,
-            item_id=track_id,
-            item_type=SpotifyItemType.TRACK
-        )
+        track = await spotify_data_service.get_track_by_id(access_token=access_token.access_token, item_id=track_id)
         return track
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested track"
@@ -87,18 +83,17 @@ async def get_several_tracks_by_ids(
     """
 
     try:
-        track = await spotify_data_service._get_items_data_by_ids(
+        tracks = await spotify_data_service.get_tracks_by_ids(
             access_token=access_token.access_token,
-            item_ids=requested_items.ids,
-            item_type=SpotifyItemType.TRACK
+            item_ids=requested_items.ids
         )
-        return track
+        return tracks
     except SpotifyDataServiceNotFoundException as e:
-        error_message = "Could not find the requested track"
+        error_message = "Could not find the requested tracks"
         logger.error(f"{error_message} - {e}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
     except SpotifyDataServiceException as e:
-        error_message = "Failed to retrieve the requested track"
+        error_message = "Failed to retrieve the requested tracks"
         logger.error(f"{error_message} - {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
 

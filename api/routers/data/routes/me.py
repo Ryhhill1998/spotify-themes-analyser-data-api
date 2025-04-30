@@ -126,7 +126,8 @@ async def get_top_tracks(
 async def get_top_emotions(
         access_token: AccessToken,
         insights_service: InsightsServiceDependency,
-        time_range: TopItemTimeRange
+        time_range: TopItemTimeRange,
+        limit: Annotated[int, Field(ge=1, le=15)] = 15
 ) -> JSONResponse:
     """
     Retrieves the user's top emotional responses based on their music listening history.
@@ -151,7 +152,8 @@ async def get_top_emotions(
     try:
         top_emotions = await insights_service.get_top_emotions(
             access_token=access_token.access_token,
-            time_range=time_range
+            time_range=time_range,
+            limit=limit
         )
         return top_emotions
     except InsightsServiceException as e:

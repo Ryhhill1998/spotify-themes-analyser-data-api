@@ -189,7 +189,8 @@ class InsightsService:
     async def get_top_emotions(
             self,
             access_token: str,
-            time_range: TopItemTimeRange
+            time_range: TopItemTimeRange,
+            limit: int
     ) -> list[TopEmotion]:
         """
         Retrieves the top emotions detected in a user's top Spotify tracks.
@@ -248,7 +249,7 @@ class InsightsService:
             self._check_data_not_empty(data=emotional_profiles, label="emotional profiles")
 
             # get top emotions from all emotional profiles
-            top_emotions = self._process_emotions(emotional_profiles=emotional_profiles)
+            top_emotions = self._process_emotions(emotional_profiles=emotional_profiles)[:limit]
 
             return top_emotions
         except (SpotifyDataServiceException, LyricsServiceException, AnalysisServiceException) as e:

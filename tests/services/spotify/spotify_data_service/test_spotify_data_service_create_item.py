@@ -9,6 +9,7 @@ from copy import deepcopy
 
 import pytest
 
+from api.models.models import SpotifyTrack, SpotifyImage, SpotifyTrackArtist, SpotifyArtist
 from api.services.spotify.spotify_data_service import SpotifyDataServiceException
 
 
@@ -103,14 +104,28 @@ def test__create_track_raises_spotify_data_service_exception_if_data_missing_fie
 
 
 # 3. Test _create_track returns expected track.
-def test__create_track_returns_expected_track():
-    pass
+def test__create_track_returns_expected_track(spotify_data_service, track_data):
+    track = spotify_data_service._create_track(track_data)
+
+    expected_track = SpotifyTrack(
+        id="1",
+        name="track_name",
+        images=[SpotifyImage(height=100, width=100, url="album_image_url")],
+        spotify_url="spotify_url",
+        artist=SpotifyTrackArtist(id="1", name="artist_name"),
+        release_date="album_release_date",
+        album_name="album_name",
+        explicit=True,
+        duration_ms=180000,
+        popularity=50
+    )
+    assert track == expected_track
 
 
 # 4. Test _create_artist raises SpotifyDataServiceException if input data is not a dict.
 def test__create_artist_raises_spotify_data_service_exception_if_data_not_a_dict(spotify_data_service):
     with pytest.raises(SpotifyDataServiceException) as e:
-        spotify_data_service._create_track("")
+        spotify_data_service._create_artist("")
 
     assert "Spotify data not of type dict. Actual type: <class 'str'>" in str(e.value)
 
@@ -147,6 +162,17 @@ def test__create_artist_raises_spotify_data_service_exception_if_data_missing_fi
 
 
 
-# 6. Test _create_artist returns expected track.
-def test__create_artist_returns_expected_track():
-    pass
+# 6. Test _create_artist returns expected artist.
+def test__create_artist_returns_expected_artist(spotify_data_service, artist_data):
+    artist = spotify_data_service._create_artist(artist_data)
+
+    expected_artist = SpotifyArtist(
+        id="1",
+        name="artist_name",
+        images=[SpotifyImage(height=100, width=100, url="album_image_url")],
+        spotify_url="spotify_url",
+        genres=["genre1", "genre2", "genre3"],
+        followers=100,
+        popularity=50
+    )
+    assert artist == expected_artist

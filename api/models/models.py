@@ -120,6 +120,8 @@ class SpotifyTrackAlbum(BaseModel):
 
     Attributes
     ----------
+    name : str
+        The name of the album.
     images : list[SpotifyImage]
         A list of images representing the album cover.
     release_date : str
@@ -179,8 +181,12 @@ class SpotifyArtistData(SpotifyItemBase):
         A list of images representing the artist.
     external_urls : SpotifyItemExternalUrls
         External URLs related to the artist.
+    followers : SpotifyProfileFollowers
+        The Spotify users following the artist.
     genres : list[str]
         A list of genres associated with the artist.
+    popularity : int
+        A value between 0 (low) and 100 (high) representing the current popularity of the artist.
     """
 
     images: list[SpotifyImage]

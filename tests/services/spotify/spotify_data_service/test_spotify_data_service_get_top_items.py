@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -12,10 +12,8 @@ TEST_URL = "http://test-url.com"
 # 2. Test _get_top_items_data raises SpotifyDataServiceException if EndpointRequesterException occurs.
 # 3. Test _get_top_items_data raises KeyError if items key not present in data.
 # 4. Test _get_top_items_data returns expected response.
-# 5. Test get_top_artists returns list of SpotifyArtist objects.
-# 6. Test get_top_artists calls _get_top_items_data with expected params.
-# 7. Test get_top_tracks returns list of SpotifyTrack objects.
-# 8. Test get_top_tracks calls _get_top_items_data with expected params.
+# 5. Test get_top_artists calls expected methods.
+# 6. Test get_top_tracks calls expected methods.
 
 
 # 1. Test _get_top_items_data raises SpotifyDataServiceUnauthorisedException if EndpointRequesterUnauthorisedException occurs.
@@ -84,24 +82,14 @@ async def test__get_top_items_data_returns_expected_response(spotify_data_servic
     assert response == "response_items"
 
 
-# 5. Test get_top_artists returns list of SpotifyArtist objects.
+# 5. Test get_top_artists calls expected methods
 @pytest.mark.asyncio
-async def test_get_top_artists_returns_list_of_spotify_artists(spotify_data_service, mock_artist_data):
+async def test_get_top_artists_calls__get_top_items_data_with_expected_params(spotify_data_service, mock_artist_data):
     mock__get_top_items_data = AsyncMock()
     mock__get_top_items_data.return_value = [mock_artist_data]
+    mock__create_artist = Mock()
     spotify_data_service._get_top_items_data = mock__get_top_items_data
-
-    artists = await spotify_data_service.get_top_artists(access_token="access_token", time_range="medium_term", limit=0)
-
-    assert isinstance(artists, list) and all(isinstance(artist, SpotifyArtist) for artist in artists)
-
-
-# 6. Test get_top_artists calls _get_top_items_data with expected params.
-@pytest.mark.asyncio
-async def test_get_top_artists_calls__get_top_items_data_with_expected_params(spotify_data_service):
-    mock__get_top_items_data = AsyncMock()
-    mock__get_top_items_data.return_value = []
-    spotify_data_service._get_top_items_data = mock__get_top_items_data
+    spotify_data_service._create_artist = mock__create_artist
 
     await spotify_data_service.get_top_artists(access_token="access_token", time_range="medium_term", limit=0)
 
@@ -111,26 +99,17 @@ async def test_get_top_artists_calls__get_top_items_data_with_expected_params(sp
         time_range="medium_term",
         limit=0
     )
+    mock__create_artist.assert_called_once()
 
 
-# 7. Test get_top_tracks returns list of SpotifyTrack objects.
+# 6. Test get_top_tracks calls expected methods.
 @pytest.mark.asyncio
-async def test_get_top_tracks_returns_list_of_spotify_tracks(spotify_data_service, mock_track_data):
+async def test_get_top_tracks_calls__get_top_items_data_with_expected_params(spotify_data_service, mock_track_data):
     mock__get_top_items_data = AsyncMock()
     mock__get_top_items_data.return_value = [mock_track_data]
+    mock__create_track = Mock()
     spotify_data_service._get_top_items_data = mock__get_top_items_data
-
-    tracks = await spotify_data_service.get_top_tracks(access_token="access_token", time_range="medium_term", limit=0)
-
-    assert isinstance(tracks, list) and all(isinstance(track, SpotifyTrack) for track in tracks)
-
-
-# 8. Test get_top_tracks calls _get_top_items_data with expected params.
-@pytest.mark.asyncio
-async def test_get_top_tracks_calls__get_top_items_data_with_expected_params(spotify_data_service):
-    mock__get_top_items_data = AsyncMock()
-    mock__get_top_items_data.return_value = []
-    spotify_data_service._get_top_items_data = mock__get_top_items_data
+    spotify_data_service._create_track = mock__create_track
 
     await spotify_data_service.get_top_tracks(access_token="access_token", time_range="medium_term", limit=0)
 
@@ -140,3 +119,4 @@ async def test_get_top_tracks_calls__get_top_items_data_with_expected_params(spo
         time_range="medium_term",
         limit=0
     )
+    mock__create_track.assert_called_once()

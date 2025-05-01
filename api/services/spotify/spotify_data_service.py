@@ -392,7 +392,7 @@ class SpotifyDataService(SpotifyService):
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceUnauthorisedException(error_message)
         except EndpointRequesterNotFoundException as e:
-            error_message = f"Requested Spotify item not found. Item ID: {item_id}, item type: {item_type}"
+            error_message = f"Requested Spotify item not found. Item ID: {item_id}, item type: {item_type.value}"
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceNotFoundException(error_message)
         except EndpointRequesterException as e:

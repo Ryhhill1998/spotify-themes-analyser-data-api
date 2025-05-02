@@ -143,16 +143,16 @@ class SpotifyDataService(SpotifyService):
                 followers=profile_data.followers.total
             )
         except EndpointRequesterUnauthorisedException as e:
-            error_message = "Invalid Spotify API access token"
-            logger.error(f"{error_message} - {e}")
+            error_message = f"Invalid Spotify API access token - {e}"
+            logger.error(error_message)
             raise SpotifyDataServiceUnauthorisedException(error_message)
         except EndpointRequesterException as e:
-            error_message = "Failed to make request to Spotify API"
-            logger.error(f"{error_message} - {e}")
+            error_message = f"Failed to make request to Spotify API - {e}"
+            logger.error(error_message)
             raise SpotifyDataServiceException(error_message)
         except pydantic.ValidationError as e:
-            error_message = "Spotify API data validation failed"
-            logger.error(f"{error_message} - {e}")
+            error_message = f"Spotify API data validation failed - {e}"
+            logger.error(error_message)
             raise SpotifyDataServiceException(error_message)
 
     @staticmethod

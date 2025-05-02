@@ -7,8 +7,9 @@ from api.services.spotify.spotify_data_service import SpotifyDataServiceExceptio
 
 
 # 1. Test get_top_genres raises SpotifyDataServiceException if get_top_artists returns empty list.
-# 2. Test get_top_genres returns empty list if no all genres empty in top artists.
-# 3. Test get_top_genres returns expected genres.
+# 2. Test get_top_genres raises SpotifyDataServiceException if limit less than 1.
+# 3. Test get_top_genres returns empty list if no all genres empty in top artists.
+# 4. Test get_top_genres returns expected genres.
 
 
 # 1. Test get_top_genres raises SpotifyDataServiceException if get_top_artists returns empty list.
@@ -26,6 +27,7 @@ async def test_get_top_genres_raises_spotify_data_service_exception_if_get_top_a
     assert "No top artists found. Cannot proceed with analysis." in str(e.value)
 
 
+# 2. Test get_top_genres raises SpotifyDataServiceException if limit less than 1.
 @pytest.mark.asyncio
 @pytest.mark.parametrize("limit", [0, -1, -10])
 async def test_get_top_genres_raises_spotify_data_service_exception_if_limit_less_than_1(spotify_data_service, limit):
@@ -34,7 +36,8 @@ async def test_get_top_genres_raises_spotify_data_service_exception_if_limit_les
 
     assert "Limit must be at least 1." in str(e.value)
 
-# 2. Test get_top_genres returns empty list if no all genres empty in top artists.
+
+# 3. Test get_top_genres returns empty list if no all genres empty in top artists.
 @pytest.mark.asyncio
 async def test_get_top_genres_returns_empty_list_if_no_genres_in_top_artists(spotify_data_service):
     mock_get_top_artists = AsyncMock()
@@ -64,7 +67,7 @@ async def test_get_top_genres_returns_empty_list_if_no_genres_in_top_artists(spo
     assert top_genres == []
 
 
-# 3. Test get_top_genres returns expected genres.
+# 4. Test get_top_genres returns expected genres.
 @pytest.mark.asyncio
 @pytest.mark.parametrize("limit", [10, 3, 2, 1])
 async def test_get_top_genres_returns_expected_genres(spotify_data_service, limit):

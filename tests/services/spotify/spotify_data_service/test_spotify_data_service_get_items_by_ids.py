@@ -49,6 +49,21 @@ async def test__get_items_data_by_ids_raises_spotify_data_service_exception_if_e
 
 
 # 3. Test _get_items_data_by_ids raises SpotifyDataServiceException if API data missing expected key.
+@pytest.mark.asyncio
+@pytest.mark.parametrize("item_type", [SpotifyItemType.TRACK, SpotifyItemType.ARTIST])
+async def test__get_items_data_by_ids_raises_spotify_data_service_exception_if_api_data_missing_expected_key(
+        spotify_data_service,
+        mock_endpoint_requester,
+        item_type
+):
+    mock_endpoint_requester.get.return_value = {"test": "test_value"}
+
+    with pytest.raises(SpotifyDataServiceException, match=f"Invalid response data. Missing field: {item_type.value}s"):
+        await spotify_data_service._get_items_data_by_ids(
+            access_token="",
+            item_ids=["1"],
+            item_type=item_type
+        )
 
 
 # 4. Test _get_items_data_by_ids calls endpoint_requester.get with expected params.

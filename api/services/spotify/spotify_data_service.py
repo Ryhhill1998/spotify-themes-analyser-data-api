@@ -331,6 +331,9 @@ class SpotifyDataService(SpotifyService):
     async def get_top_genres(self, access_token: str, time_range: str, limit: int) -> list[TopGenre]:
         top_artists = await self.get_top_artists(access_token=access_token, time_range=time_range, limit=50)
 
+        if not top_artists:
+            raise SpotifyDataServiceException("No top artists found. Cannot proceed with analysis.")
+
         all_genres = [
             genre
             for artist in top_artists
@@ -355,7 +358,7 @@ class SpotifyDataService(SpotifyService):
 
         return sampled_top_genres
 
-    async def _get_item_by_id(self, access_token: str, item_id: str, item_type: SpotifyItemType) -> dict:
+    async def _get_item_data_by_id(self, access_token: str, item_id: str, item_type: SpotifyItemType) -> dict:
         """
         Fetches a specific item (track or artist) from the Spotify API using its unique identifier.
 
@@ -401,12 +404,12 @@ class SpotifyDataService(SpotifyService):
             raise SpotifyDataServiceException(error_message)
         
     async def get_artist_by_id(self, access_token: str, item_id: str) -> SpotifyArtist:
-        item = await self._get_item_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.ARTIST)
+        item = await self._get_item_data_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.ARTIST)
         artist = self._create_artist(item)
         return artist
     
     async def get_track_by_id(self, access_token: str, item_id: str) -> SpotifyTrack:
-        item = await self._get_item_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.TRACK)
+        item = await self._get_item_data_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.TRACK)
         track = self._create_track(item)
         return track
 
@@ -433,12 +436,12 @@ class SpotifyDataService(SpotifyService):
             error_message = "Invalid Spotify API access token"
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceUnauthorisedException(error_message)
-        except EndpointRequesterNotFoundException as e:
-            error_message = f"Requested Spotify items not found. Item type: {item_type}"
-            logger.error(f"{error_message} - {e}")
-            raise SpotifyDataServiceNotFoundException(error_message)
         except EndpointRequesterException as e:
             error_message = "Failed to make request to Spotify API"
+            logger.error(f"{error_message} - {e}")
+            raise SpotifyDataServiceException(error_message)
+        except KeyError as e:
+            error_message = f"Invalid response data. Missing field: {item_type.value}s"
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
         

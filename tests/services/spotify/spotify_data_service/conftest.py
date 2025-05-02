@@ -6,7 +6,6 @@ TEST_URL = "http://test-url.com"
 TEST_CLIENT_ID = "client_id"
 TEST_CLIENT_SECRET = "client_secret"
 TEST_REDIRECT_URI = "http://redirect-test-url.com"
-TEST_SCOPE = "user-top-read"
 
 
 @pytest.fixture

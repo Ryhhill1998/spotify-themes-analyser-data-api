@@ -329,6 +329,9 @@ class SpotifyDataService(SpotifyService):
         return top_tracks
 
     async def get_top_genres(self, access_token: str, time_range: str, limit: int) -> list[TopGenre]:
+        if limit <= 0:
+            raise SpotifyDataServiceException("Limit must be at least 1.")
+
         top_artists = await self.get_top_artists(access_token=access_token, time_range=time_range, limit=50)
 
         if not top_artists:

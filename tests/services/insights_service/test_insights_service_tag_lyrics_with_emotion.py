@@ -1,13 +1,8 @@
 from unittest.mock import AsyncMock
 import pytest
 
-from api.models.models import (
-    TokenData,
-    LyricsResponse,
-    SpotifyTrack,
-    SpotifyTrackArtist,
-    SpotifyImage, SpotifyItemResponse, EmotionalTagsResponse, Emotion, TaggedLyricsResponse
-)
+from api.models.models import TokenData, LyricsResponse, SpotifyTrack, SpotifyTrackArtist, SpotifyImage, \
+    EmotionalTagsResponse, Emotion
 from api.services.analysis_service import AnalysisService, AnalysisServiceException
 from api.services.insights_service import InsightsService, InsightsServiceException
 from api.services.lyrics_service import LyricsService, LyricsServiceException

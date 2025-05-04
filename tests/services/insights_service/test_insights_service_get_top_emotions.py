@@ -1,319 +1,279 @@
+from unittest.mock import Mock
+
 import pytest
 
-from api.models.models import (
-    SpotifyItemsResponse,
-    LyricsResponse,
-    EmotionalProfileResponse,
-    EmotionalProfile,
-    SpotifyTrack,
-    SpotifyTrackArtist,
-    TopEmotionsResponse,
-    TopEmotion,
-    SpotifyImage
-)
+from api.models.models import LyricsResponse, EmotionalProfileResponse, EmotionalProfile, SpotifyTrack, \
+    SpotifyTrackArtist, TopEmotion, SpotifyImage
 from api.services.analysis_service import AnalysisServiceException
 from api.services.insights_service import InsightsServiceException
 from api.services.lyrics_service import LyricsServiceException
 from api.services.spotify.spotify_data_service import SpotifyDataServiceException
 
-# 1. Test that get_top_emotions raises InsightsServiceException if any of its dependency services fail.
-# 2. Test that get_top_emotions raises InsightsServiceException if data validation fails.
-# 3. Test that get_top_emotions returns a TopEmotionsResponse object if data is valid.
+# 1. Test get_top_emotions raises InsightsServiceException if limit less than 1.
+# 2. Test get_top_emotions raises InsightsServiceException if SpotifyDataServiceException occurs.
+# 3. Test get_top_emotions raises InsightsServiceException if LyricsServiceException occurs.
+# 4. Test get_top_emotions raises InsightsServiceException if AnalysisServiceException occurs.
+# 5. Test get_top_emotions raises InsightsServiceException if top_tracks is empty.
+# 6. Test get_top_emotions raises InsightsServiceException if lyrics_list is empty.
+# 7. Test get_top_emotions raises InsightsServiceException if emotional_profiles is empty.
+# 8. Test get_top_emotions returns expected top emotions.
 
 
 @pytest.fixture
-def mock_spotify_data(mock_request_tokens) -> SpotifyItemsResponse:
-    data = [
-        SpotifyTrack(
-            id="1",
-            name="Track 1",
-            images=[
-                SpotifyImage(height=640, width=640, url="http://image-url.com")
-            ],
-            spotify_url="http://spotify-test-url.com",
-            artist=SpotifyTrackArtist(id="1", name=f"Artist 1"),
-            release_date="01/01/1999",
+def mock_spotify_track_factory():
+    def _create(track_id: str = "1", artist_id: str = "1") -> SpotifyTrack:
+        return SpotifyTrack(
+            id=track_id,
+            name="track_name",
+            images=[SpotifyImage(height=100, width=100, url="image_url")],
+            spotify_url="spotify_url",
+            artist=SpotifyTrackArtist(id=artist_id, name="artist_name"),
+            release_date="release_date",
+            album_name="album_name",
             explicit=False,
-            duration_ms=100,
-            popularity=50
-        ),
-        SpotifyTrack(
-            id="2",
-            name="Track 2",
-            images=[
-                SpotifyImage(height=640, width=640, url="http://image-url.com")
-            ],
-            spotify_url="http://spotify-test-url.com",
-            artist=SpotifyTrackArtist(id="2", name=f"Artist 2"),
-            release_date="01/01/1999",
-            explicit=False,
-            duration_ms=100,
+            duration_ms=180000,
             popularity=50
         )
-    ]
-    return SpotifyItemsResponse(data=data, tokens=mock_request_tokens)
+
+    return _create
 
 
 @pytest.fixture
-def mock_lyrics_data() -> list[LyricsResponse]:
-    return [
-        LyricsResponse(track_id="1", artist_name="Artist 1", track_title="Track 1", lyrics="Lyrics for Track 1"),
-        LyricsResponse(track_id="2", artist_name="Artist 2", track_title="Track 2", lyrics="Lyrics for Track 2"),
-    ]
+def mock_top_tracks(mock_spotify_track_factory) -> list[SpotifyTrack]:
+    return [mock_spotify_track_factory(track_id=str(i), artist_id=str(i)) for i in range(1, 6)]
 
 
 @pytest.fixture
-def mock_analysis_data() -> list[EmotionalProfileResponse]:
+def mock_lyrics_response_factory():
+    def _create(track_id: str) -> LyricsResponse:
+        return LyricsResponse(track_id=track_id, artist_name="artist_name", track_title="track_title", lyrics="lyrics")
+
+    return _create
+
+
+@pytest.fixture
+def mock_lyrics_list(mock_lyrics_response_factory) -> list[LyricsResponse]:
+    return [mock_lyrics_response_factory(str(id)) for i in range(1, 6)]
+
+
+@pytest.fixture
+def mock_emotional_profile_factory():
+    def _create(
+            track_id: str,
+            joy: float,
+            sadness: float,
+            anger: float,
+            fear: float,
+            love: float,
+            hope: float,
+            nostalgia: float,
+            loneliness: float,
+            confidence: float,
+            despair: float,
+            excitement: float,
+            mystery: float,
+            defiance: float,
+            gratitude: float,
+            spirituality: float
+    ) -> EmotionalProfileResponse:
+        return EmotionalProfileResponse(
+            track_id=track_id,
+            lyrics="lyrics",
+            emotional_profile=EmotionalProfile(
+                joy=joy,
+                sadness=sadness,
+                anger=anger,
+                fear=fear,
+                love=love,
+                hope=hope,
+                nostalgia=nostalgia,
+                loneliness=loneliness,
+                confidence=confidence,
+                despair=despair,
+                excitement=excitement,
+                mystery=mystery,
+                defiance=defiance,
+                gratitude=gratitude,
+                spirituality=spirituality
+            )
+        )
+
+    return _create
+
+
+@pytest.fixture
+def mock_emotional_profiles(mock_emotional_profile_factory) -> list[EmotionalProfileResponse]:
     return [
-        EmotionalProfileResponse(
+        mock_emotional_profile_factory(
             track_id="1",
-            lyrics="Lyrics for Track 1",
-            emotional_profile=EmotionalProfile(
-                joy=0.2,
-                sadness=0.1,
-                anger=0.05,
-                fear=0,
-                love=0,
-                hope=0.05,
-                nostalgia=0.04,
-                loneliness=0.02,
-                confidence=0.02,
-                despair=0,
-                excitement=0.01,
-                mystery=0.01,
-                defiance=0.2,
-                gratitude=0.15,
-                spirituality=0.15
-            )
+            joy=0.2,
+            sadness=0.1,
+            anger=0.05,
+            fear=0,
+            love=0,
+            hope=0.05,
+            nostalgia=0.04,
+            loneliness=0.02,
+            confidence=0.02,
+            despair=0,
+            excitement=0.01,
+            mystery=0.01,
+            defiance=0.2,
+            gratitude=0.15,
+            spirituality=0.15
         ),
-        EmotionalProfileResponse(
+        mock_emotional_profile_factory(
             track_id="2",
-            lyrics="Lyrics for Track 2",
-            emotional_profile=EmotionalProfile(
-                joy=0,
-                sadness=0.15,
-                anger=0.05,
-                fear=0,
-                love=0,
-                hope=0.05,
-                nostalgia=0.24,
-                loneliness=0.02,
-                confidence=0.02,
-                despair=0,
-                excitement=0.01,
-                mystery=0.06,
-                defiance=0.3,
-                gratitude=0,
-                spirituality=0.1
-            )
+            joy=0,
+            sadness=0.15,
+            anger=0.05,
+            fear=0,
+            love=0,
+            hope=0.05,
+            nostalgia=0.24,
+            loneliness=0.02,
+            confidence=0.02,
+            despair=0,
+            excitement=0.01,
+            mystery=0.06,
+            defiance=0.3,
+            gratitude=0,
+            spirituality=0.1
         )
     ]
 
 
+# 1. Test that get_top_emotions raises InsightsServiceException if limit less than 1.
 @pytest.mark.asyncio
-async def test_get_top_emotions_spotify_data_service_failure(insights_service, mock_spotify_data_service, mock_request_tokens):
+@pytest.mark.parametrize("limit", [0, -1, -10])
+async def test_get_top_emotions_raises_insights_service_exception_if_limit_less_than_1(insights_service, limit):
+    with pytest.raises(InsightsServiceException, match="Limit cannot be less than 1."):
+        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=limit)
+
+
+# 2. Test that get_top_emotions raises InsightsServiceException if SpotifyDataServiceException occurs.
+@pytest.mark.asyncio
+async def test_get_top_emotions_raises_insights_service_exception_if_spotify_data_service_exception_occurs(
+        insights_service,
+        mock_spotify_data_service
+):
     exception_message = "Test SpotifyDataService failure"
-    mock_spotify_data_service.get_top_items.side_effect = SpotifyDataServiceException(exception_message)
+    mock_spotify_data_service.get_top_tracks.side_effect = SpotifyDataServiceException(exception_message)
 
     with pytest.raises(InsightsServiceException, match="Service failure") as e:
-        await insights_service.get_top_emotions(mock_request_tokens)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
 
-    assert exception_message in str(e)
+    assert exception_message in str(e.value)
 
 
+# 3. Test that get_top_emotions raises InsightsServiceException if LyricsServiceException occurs.
 @pytest.mark.asyncio
-async def test_get_top_emotions_lyrics_service_failure(
+async def test_get_top_emotions_raises_insights_service_exception_if_lyrics_service_exception_occurs(
         insights_service,
         mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
         mock_lyrics_service
 ):
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
+    mock_spotify_data_service.get_top_tracks.return_value = []
+    insights_service._check_data_not_empty = Mock()
     exception_message = "Test LyricsService failure"
     mock_lyrics_service.get_lyrics_list.side_effect = LyricsServiceException(exception_message)
 
     with pytest.raises(InsightsServiceException, match="Service failure") as e:
-        await insights_service.get_top_emotions(mock_request_tokens)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
 
     assert exception_message in str(e)
 
 
+# 4. Test that get_top_emotions raises InsightsServiceException if AnalysisServiceException occurs.
 @pytest.mark.asyncio
-async def test_get_top_emotions_analysis_service_failure(
+async def test_get_top_emotions_raises_insights_service_exception_if_analysis_service_exception_occurs(
         insights_service,
         mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
         mock_lyrics_service,
-        mock_lyrics_data,
         mock_analysis_service
 ):
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
-    mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_data
+    mock_spotify_data_service.get_top_tracks.return_value = []
+    mock_lyrics_service.get_lyrics_list.return_value = []
+    insights_service._check_data_not_empty = Mock()
     exception_message = "Test AnalysisService failure"
     mock_analysis_service.get_emotional_profiles.side_effect = AnalysisServiceException(exception_message)
 
     with pytest.raises(InsightsServiceException, match="Service failure") as e:
-        await insights_service.get_top_emotions(mock_request_tokens)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
 
     assert exception_message in str(e)
 
 
-@pytest.mark.parametrize("attr_name", ["id", "name", "artist"])
+# 5. Test that get_top_emotions raises InsightsServiceException if top_tracks is empty.
 @pytest.mark.asyncio
-async def test_get_top_emotions_spotify_data_validation_failure(
+async def test_get_top_items_raises_insights_service_exception_if_top_tracks_empty(
+        insights_service,
+        mock_spotify_data_service
+):
+    mock_spotify_data_service.get_top_tracks.return_value = []
+
+    with pytest.raises(InsightsServiceException, match="No top tracks found. Cannot proceed further with analysis."):
+        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
+
+
+# 6. Test that get_top_emotions raises InsightsServiceException if lyrics_list is empty.
+@pytest.mark.asyncio
+async def test_get_top_items_raises_insights_service_exception_if_lyrics_list_empty(
         insights_service,
         mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
-        attr_name
+        mock_top_tracks,
+        mock_lyrics_service
 ):
-    """Spotify data should be missing id, name, artist or artist.name"""
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
-    setattr(mock_spotify_data.data[0], attr_name, None)
-
-    with pytest.raises(InsightsServiceException, match="Data validation failure"):
-        await insights_service.get_top_emotions(mock_request_tokens)
-
-
-@pytest.mark.parametrize("attr_name", ["track_id", "lyrics"])
-@pytest.mark.asyncio
-async def test_get_top_emotions_lyrics_data_validation_failure(
-        insights_service,
-        mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
-        mock_lyrics_service,
-        mock_lyrics_data,
-        attr_name
-):
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
-    mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_data
-    setattr(mock_lyrics_data[0], attr_name, None)
-
-    with pytest.raises(InsightsServiceException, match="Data validation failure"):
-        await insights_service.get_top_emotions(mock_request_tokens)
-
-
-@pytest.mark.asyncio
-async def test_get_top_emotions_analysis_data_validation_failure(
-        insights_service,
-        mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
-        mock_lyrics_service,
-        mock_lyrics_data,
-        mock_analysis_service,
-        mock_analysis_data
-):
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
-    mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_data
-    mock_analysis_service.get_emotional_profiles.return_value = mock_analysis_data
-    setattr(mock_analysis_data[0], "emotional_profile", None)
-
-    with pytest.raises(InsightsServiceException, match="Data validation failure"):
-        await insights_service.get_top_emotions(mock_request_tokens)
-
-
-@pytest.mark.asyncio
-async def test_get_top_emotions_spotify_data_empty(
-        insights_service,
-        mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data
-):
-    mock_spotify_data.data = []
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
-
-    with pytest.raises(
-            InsightsServiceException,
-            match="No top tracks found. Cannot proceed further with analysis."
-    ):
-        await insights_service.get_top_emotions(mock_request_tokens)
-
-
-@pytest.mark.asyncio
-async def test_get_top_emotions_lyrics_data_empty(
-        insights_service,
-        mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
-        mock_lyrics_service,
-        mock_lyrics_data
-):
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
+    mock_spotify_data_service.get_top_tracks.return_value = mock_top_tracks
     mock_lyrics_service.get_lyrics_list.return_value = []
 
-    with pytest.raises(
-            InsightsServiceException,
-            match="No lyrics found. Cannot proceed further with analysis."
-    ):
-        await insights_service.get_top_emotions(mock_request_tokens)
+    with pytest.raises(InsightsServiceException, match="No lyrics found. Cannot proceed further with analysis."):
+        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
 
 
+# 7. Test that get_top_emotions raises InsightsServiceException if emotional_profiles is empty.
 @pytest.mark.asyncio
-async def test_get_top_emotions_analysis_data_empty(
+async def test_get_top_items_raises_insights_service_exception_if_top_tracks_empty(
         insights_service,
         mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
+        mock_top_tracks,
         mock_lyrics_service,
-        mock_lyrics_data,
-        mock_analysis_service,
-        mock_analysis_data
+        mock_lyrics_list,
+        mock_analysis_service
 ):
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
-    mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_data
+    mock_spotify_data_service.get_top_tracks.return_value = mock_top_tracks
+    mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_list
     mock_analysis_service.get_emotional_profiles.return_value = []
 
-    with pytest.raises(
-            InsightsServiceException,
-            match="No emotional profiles found. Cannot proceed further with analysis."
-    ):
-        await insights_service.get_top_emotions(mock_request_tokens)
+    with pytest.raises(InsightsServiceException,
+                       match="No emotional profiles found. Cannot proceed further with analysis."):
+        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
 
-
-@pytest.mark.parametrize("limit", [0, -1, -2, -100])
+# 8. Test get_top_emotions returns expected top emotions.
 @pytest.mark.asyncio
-async def test_get_top_emotions_invalid_limit(
-        insights_service,
-        mock_spotify_data_service,
-        mock_request_tokens,
-        mock_lyrics_service,
-        mock_analysis_service,
-        limit
-):
-    with pytest.raises(InsightsServiceException, match="Limit must be positive."):
-        await insights_service.get_top_emotions(tokens=mock_request_tokens, limit=limit)
-
-
 @pytest.mark.parametrize("limit", [5, 4, 3, 2, 1])
-@pytest.mark.asyncio
-async def test_get_top_emotions_returns_expected_response(
+async def test_get_top_emotions_returns_expected_top_emotions(
         insights_service,
         mock_spotify_data_service,
-        mock_request_tokens,
-        mock_spotify_data,
+        mock_top_tracks,
         mock_lyrics_service,
-        mock_lyrics_data,
+        mock_lyrics_list,
         mock_analysis_service,
-        mock_analysis_data,
+        mock_emotional_profiles,
         limit
 ):
-    mock_spotify_data_service.get_top_items.return_value = mock_spotify_data
-    mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_data
-    mock_analysis_service.get_emotional_profiles.return_value = mock_analysis_data
+    mock_spotify_data_service.get_top_tracks.return_value = mock_top_tracks
+    mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_list
+    mock_analysis_service.get_emotional_profiles.return_value = mock_emotional_profiles
 
-    top_emotions = [
+    top_emotions = await insights_service.get_top_emotions(access_token="", time_range="", limit=limit)
+
+    all_top_emotions = [
         TopEmotion(name="defiance", percentage=0.25, track_id="2"),
         TopEmotion(name="nostalgia", percentage=0.14, track_id="2"),
         TopEmotion(name="sadness", percentage=0.12, track_id="2"),
         TopEmotion(name="spirituality", percentage=0.12, track_id="1"),
         TopEmotion(name="joy", percentage=0.1, track_id="1")
     ]
-
-    response = await insights_service.get_top_emotions(tokens=mock_request_tokens, limit=limit)
-
-    expected_response = TopEmotionsResponse(top_emotions=top_emotions[:limit], tokens=mock_spotify_data.tokens)
-    assert response == expected_response
+    expected_top_emotions = all_top_emotions[:limit]
+    assert top_emotions == expected_top_emotions

@@ -69,6 +69,29 @@ class InsightsService:
         self.analysis_service = analysis_service
 
     @staticmethod
+    def _check_data_not_empty(data: list, label: str):
+        """
+        Checks if the provided data is empty and raises an exception if it is.
+
+        Parameters
+        ----------
+        data : list
+            The list of data to be checked.
+        label : str
+            A label representing the type of data being checked (e.g., "top tracks").
+
+        Raises
+        ------
+        InsightsServiceException
+            If the data list is empty, an exception is raised with an appropriate error message.
+        """
+
+        if len(data) == 0:
+            error_message = f"No {label} found. Cannot proceed further with analysis."
+            logger.error(error_message)
+            raise InsightsServiceException(error_message)
+
+    @staticmethod
     def _aggregate_emotions(emotional_analyses: list[EmotionalProfileResponse]) -> dict:
         """
         Aggregates emotional analysis results across multiple songs.
@@ -138,29 +161,6 @@ class InsightsService:
             if (track_id := info["max_track"]["track_id"]) is not None
         ]
 
-    @staticmethod
-    def _check_data_not_empty(data: list, label: str):
-        """
-        Checks if the provided data is empty and raises an exception if it is.
-
-        Parameters
-        ----------
-        data : list
-            The list of data to be checked.
-        label : str
-            A label representing the type of data being checked (e.g., "top tracks").
-
-        Raises
-        ------
-        InsightsServiceException
-            If the data list is empty, an exception is raised with an appropriate error message.
-        """
-
-        if len(data) == 0:
-            error_message = f"No {label} found. Cannot proceed further with analysis."
-            logger.error(error_message)
-            raise InsightsServiceException(error_message)
-
     def _process_emotions(self, emotional_profiles: list[EmotionalProfileResponse]) -> list[TopEmotion]:
         """
         Processes the emotional profiles of the tracks and returns the top emotions.
@@ -206,6 +206,11 @@ class InsightsService:
             Raised if any of the services fail to retrieve the requested data or if their responses cannot be converted
             into the appropriate pydantic model.
         """
+
+        if limit < 1:
+            error_message = "Limit cannot be less than 1."
+            logger.error(error_message)
+            raise InsightsServiceException(error_message)
 
         try:
             # get top tracks and refreshed tokens (if expired)

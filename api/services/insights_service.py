@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-import pydantic
 from loguru import logger
 
 from api.models.models import LyricsRequest, TopEmotion, EmotionalProfileResponse, EmotionalProfileRequest, \
@@ -194,17 +193,22 @@ class InsightsService:
 
         Parameters
         ----------
+        access_token : str
+            The token string used to retrieve the user's Spotify data from the SpotifyDataService.
+        time_range : str
+            The time range to retrieve the user's top emotions for.
+        limit : int
+            The maximum number of top emotions to return.
 
         Returns
         -------
-        TopEmotionsResponse
-            An object containing the top detected emotions and refreshed authentication tokens.
+        list[TopEmotion]
+            The list of the user's top emotions identified in their Spotify listening history.
 
         Raises
         ------
         InsightsServiceException
-            Raised if any of the services fail to retrieve the requested data or if their responses cannot be converted
-            into the appropriate pydantic model.
+            If any of the dependency services fail.
         """
 
         if limit < 1:
@@ -266,6 +270,8 @@ class InsightsService:
 
         Parameters
         ----------
+        access_token : str
+            The token string used to retrieve the user's Spotify data from the SpotifyDataService.
         track_id : str
             The ID of the track being analyzed.
         emotion : Emotion
@@ -274,12 +280,12 @@ class InsightsService:
         Returns
         -------
         EmotionalTagsResponse
-            A response object containing the emotional tags.
+            A response object containing the track's lyrics with emotional tags.
 
         Raises
         ------
         InsightsServiceException
-            If any step of the retrieval process fails.
+            If any of the dependency services fail.
         """
 
         try:

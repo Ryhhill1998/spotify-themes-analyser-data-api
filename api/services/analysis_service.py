@@ -38,9 +38,7 @@ class AnalysisService:
     -------
     get_emotional_tags(request)
         Retrieves emotional tags for the given lyrics.
-    get_emotional_profile(request)
-        Retrieves the emotional profile of a track’s lyrics.
-    get_emotional_profiles_list(requests)
+    get_emotional_profiles(requests)
         Retrieves emotional profiles for multiple tracks concurrently (async).
     """
     

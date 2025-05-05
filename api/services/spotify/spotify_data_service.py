@@ -114,6 +114,11 @@ class SpotifyDataService(SpotifyService):
         """
         Fetches a user's profile from Spotify.
 
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+
         Returns
         -------
         SpotifyProfile
@@ -158,7 +163,7 @@ class SpotifyDataService(SpotifyService):
     @staticmethod
     def _create_track(data: dict) -> SpotifyTrack:
         """
-        Creates a TopTrack object from Spotify API data.
+        Creates a SpotifyTrack object from Spotify API data.
 
         Parameters
         ----------
@@ -168,14 +173,12 @@ class SpotifyDataService(SpotifyService):
         Returns
         -------
         SpotifyTrack
-            A validated TopTrack object.
+            A validated SpotifyTrack object.
 
         Raises
         -------
-        TypeError
-            If data is not a dict.
-        pydantic.ValidationError
-            If data validation fails.
+        SpotifyDataServiceException
+            If the input data is not a dictionary or if the data validation fails.
         """
         
         try:
@@ -211,7 +214,7 @@ class SpotifyDataService(SpotifyService):
     @staticmethod
     def _create_artist(data: dict) -> SpotifyArtist:
         """
-        Creates a TopArtist object from Spotify API data.
+        Creates a SpotifyArtist object from Spotify API data.
 
         Parameters
         ----------
@@ -221,14 +224,12 @@ class SpotifyDataService(SpotifyService):
         Returns
         -------
         SpotifyArtist
-            A validated TopArtist object.
+            A validated SpotifyArtist object.
 
         Raises
         -------
-        TypeError
-            If data is not a dict.
-        pydantic.ValidationError
-            If data validation fails.
+        SpotifyDataServiceException
+            If the input data is not a dictionary or if the data validation fails.
         """
 
         try:
@@ -262,10 +263,12 @@ class SpotifyDataService(SpotifyService):
             limit: int
     ) -> list[dict]:
         """
-        Fetches a user's top items from Spotify.
+        Fetches raw data for a user's top items from Spotify.
 
         Parameters
         ----------
+        access_token : str
+            The Spotify API access token.
         item_type : SpotifyItemType
             The type of items to retrieve (TRACKS or ARTISTS).
         time_range : str
@@ -275,15 +278,15 @@ class SpotifyDataService(SpotifyService):
 
         Returns
         -------
-        list[SpotifyItem]
-            A list of the user's top items.
+        list[dict]
+            A list of dictionaries representing the user's top items.
 
         Raises
         -------
         SpotifyDataServiceUnauthorisedException
             If the Spotify API request returns a 401 Unauthorised response code.
         SpotifyDataServiceException
-                If the Spotify API request fails for any other reason or API data validation fails.
+                If the Spotify API request fails for any other reason or the 'items' key is missing in the response.
         """
 
         try:
@@ -309,6 +312,31 @@ class SpotifyDataService(SpotifyService):
             raise SpotifyDataServiceException(error_message)
         
     async def get_top_artists(self, access_token: str, time_range: str, limit: int) -> list[SpotifyArtist]:
+        """
+        Retrieves the top artists for a user.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        time_range : str
+            The time range for retrieving top artists (e.g., 'short_term', 'medium_term', 'long_term').
+        limit : int
+            The number of top artists to retrieve.
+
+        Returns
+        -------
+        list[SpotifyArtist]
+            A list of the user's top Spotify artists.
+
+        Raises
+        -------
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request returns a 401 Unauthorised response code.
+        SpotifyDataServiceException
+            If the Spotify API request fails for any other reason or API data validation fails.
+        """
+
         top_items_data = await self._get_top_items_data(
             access_token=access_token, 
             item_type=SpotifyItemType.ARTIST, 
@@ -319,6 +347,31 @@ class SpotifyDataService(SpotifyService):
         return top_artists
     
     async def get_top_tracks(self, access_token: str, time_range: str, limit: int) -> list[SpotifyTrack]:
+        """
+        Retrieves the top tracks for a user.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        time_range : str
+            The time range for retrieving top tracks (e.g., 'short_term', 'medium_term', 'long_term').
+        limit : int
+            The number of top tracks to retrieve (maximum 50).
+
+        Returns
+        -------
+        list[SpotifyTrack]
+            A list of the user's top Spotify tracks.
+
+        Raises
+        -------
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request returns a 401 Unauthorised response code.
+        SpotifyDataServiceException
+            If the Spotify API request fails for any other reason or API data validation fails.
+        """
+
         top_items_data = await self._get_top_items_data(
             access_token=access_token, 
             item_type=SpotifyItemType.TRACK, 
@@ -329,6 +382,31 @@ class SpotifyDataService(SpotifyService):
         return top_tracks
 
     async def get_top_genres(self, access_token: str, time_range: str, limit: int) -> list[TopGenre]:
+        """
+        Retrieves the top genres for a user based on their top artists.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        time_range : str
+            The time range to consider for the user's top artists (e.g., 'short_term', 'medium_term', 'long_term').
+        limit : int
+            The maximum number of top genres to return. Must be at least 1.
+
+        Returns
+        -------
+        list[TopGenre]
+            A list of the user's top genres with their respective percentages.
+
+        Raises
+        -------
+        SpotifyDataServiceException
+            If the limit is not at least 1, if no top artists are found or the API request fails.
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request for top artists returns a 401 Unauthorised response code.
+        """
+
         if limit <= 0:
             raise SpotifyDataServiceException("Limit must be at least 1.")
 
@@ -363,28 +441,30 @@ class SpotifyDataService(SpotifyService):
 
     async def _get_item_data_by_id(self, access_token: str, item_id: str, item_type: SpotifyItemType) -> dict:
         """
-        Fetches a specific item (track or artist) from the Spotify API using its unique identifier.
+        Fetches raw data for a specific item (track or artist) from the Spotify API using its unique identifier.
 
         Parameters
         ----------
+        access_token : str
+            The Spotify API access token.
         item_id : str
             The unique identifier of the item (track or artist) to retrieve.
         item_type : SpotifyItemType
-            The type of the item being requested (e.g., TRACKS or ARTISTS).
+            The type of the item being requested (e.g., TRACK or ARTIST).
 
         Returns
         -------
-        SpotifyItem
-            An object representing the retrieved track or artist.
+        dict
+            A dictionary representing the retrieved track or artist data.
 
         Raises
         ------
-        SpotifyDataServiceException
-            If creating the top item object or the API request fails.
         SpotifyDataServiceUnauthorisedException
             If the Spotify API request returns a 401 Unauthorised response code.
         SpotifyDataServiceNotFoundException
             If the Spotify API request returns a 404 Not Found response code.
+        SpotifyDataServiceException
+            If the API request fails for other reasons.
         """
 
         try:
@@ -407,11 +487,61 @@ class SpotifyDataService(SpotifyService):
             raise SpotifyDataServiceException(error_message)
         
     async def get_artist_by_id(self, access_token: str, artist_id: str) -> SpotifyArtist:
+        """
+        Retrieves a specific artist by their Spotify ID.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        artist_id : str
+            The unique identifier of the artist.
+
+        Returns
+        -------
+        SpotifyArtist
+            The retrieved Spotify artist.
+
+        Raises
+        ------
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request returns a 401 Unauthorised response code.
+        SpotifyDataServiceNotFoundException
+            If the Spotify API request returns a 404 Not Found response code.
+        SpotifyDataServiceException
+            If the API request fails or if the data validation fails.
+        """
+
         item = await self._get_item_data_by_id(access_token=access_token, item_id=artist_id, item_type=SpotifyItemType.ARTIST)
         artist = self._create_artist(item)
         return artist
     
     async def get_track_by_id(self, access_token: str, track_id: str) -> SpotifyTrack:
+        """
+        Retrieves a specific track by its Spotify ID.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        track_id : str
+            The unique identifier of the track.
+
+        Returns
+        -------
+        SpotifyTrack
+            The retrieved Spotify track.
+
+        Raises
+        ------
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request returns a 401 Unauthorised response code.
+        SpotifyDataServiceNotFoundException
+            If the Spotify API request returns a 404 Not Found response code.
+        SpotifyDataServiceException
+            If the API request fails or if the data validation fails.
+        """
+
         item = await self._get_item_data_by_id(access_token=access_token, item_id=track_id, item_type=SpotifyItemType.TRACK)
         track = self._create_track(item)
         return track
@@ -422,6 +552,31 @@ class SpotifyDataService(SpotifyService):
             item_ids: list[str],
             item_type: SpotifyItemType
     ) -> list[dict]:
+        """
+        Fetches raw data for multiple items (tracks or artists) from the Spotify API using their unique identifiers.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        item_ids : list[str]
+            A list of the unique identifiers of the items (tracks or artists) to retrieve.
+        item_type : SpotifyItemType
+            The type of the items being requested (e.g., TRACK or ARTIST).
+
+        Returns
+        -------
+        list[dict]
+            A list of dictionaries representing the retrieved tracks or artists data.
+
+        Raises
+        ------
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request returns a 401 Unauthorised response code.
+        SpotifyDataServiceException
+            If the API request fails or if the expected data field is missing in the response.
+        """
+
         try:
             url = f"{self.base_url}/{item_type.value}s"
             params = {"ids": ",".join(item_ids)}
@@ -449,6 +604,29 @@ class SpotifyDataService(SpotifyService):
             raise SpotifyDataServiceException(error_message)
         
     async def get_artists_by_ids(self, access_token: str, artist_ids: list[str]) -> list[SpotifyArtist]:
+        """
+        Retrieves multiple artists by their Spotify IDs.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        artist_ids : list[str]
+            A list of the unique identifiers of the artists to retrieve.
+
+        Returns
+        -------
+        list[SpotifyArtist]
+            A list of the retrieved Spotify artists.
+
+        Raises
+        ------
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request returns a 401 Unauthorised response code.
+        SpotifyDataServiceException
+            If the API request fails or if the data validation fails.
+        """
+
         items_data = await self._get_items_data_by_ids(
             access_token=access_token, 
             item_ids=artist_ids, 
@@ -458,6 +636,29 @@ class SpotifyDataService(SpotifyService):
         return artists
     
     async def get_tracks_by_ids(self, access_token: str, track_ids: list[str]) -> list[SpotifyTrack]:
+        """
+        Retrieves multiple tracks by their Spotify IDs.
+
+        Parameters
+        ----------
+        access_token : str
+            The Spotify API access token.
+        track_ids : list[str]
+            A list of the unique identifiers of the tracks to retrieve.
+
+        Returns
+        -------
+        list[SpotifyTrack]
+            A list of the retrieved Spotify tracks.
+
+        Raises
+        ------
+        SpotifyDataServiceUnauthorisedException
+            If the Spotify API request returns a 401 Unauthorised response code.
+        SpotifyDataServiceException
+            If the API request fails or if the data validation fails.
+        """
+
         items_data = await self._get_items_data_by_ids(
             access_token=access_token, 
             item_ids=track_ids, 

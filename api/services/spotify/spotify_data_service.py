@@ -63,20 +63,28 @@ class SpotifyDataService(SpotifyService):
     """
     Service responsible for interacting with Spotify's API to fetch user-related spotify data.
 
-    This class provides methods to retrieve a user's top tracks and artists, as well as fetching
-    specific tracks and artists by their Spotify ID.
-
     Inherits from
     -------------
     MusicService, which provides core attributes such as client_id, client_secret, base_url and endpoint_requester.
 
     Methods
     -------
-    get_top_items(tokens, item_type, time_range=TimeRange.MEDIUM, limit=20) -> SpotifyItemsResponse
-        Retrieves the top tracks or artists for a user.
-
-    get_item_by_id(item_id, tokens, item_type) -> SpotifyItemResponse
-        Retrieves a specific track or artist by its unique identifier, handling authentication and errors.
+    get_profile_data(access_token: str) -> SpotifyProfile
+        Fetches a user's profile from Spotify.
+    get_top_artists(access_token: str, time_range: str, limit: int) -> list[SpotifyArtist]
+        Retrieves the top artists for a user.
+    get_top_tracks(access_token: str, time_range: str, limit: int) -> list[SpotifyTrack]
+        Retrieves the top tracks for a user.
+    get_top_genres(access_token: str, time_range: str, limit: int) -> list[TopGenre]
+        Retrieves the top genres for a user based on their top artists.
+    get_artist_by_id(access_token: str, artist_id: str) -> SpotifyArtist
+        Retrieves a specific artist by their Spotify ID.
+    get_track_by_id(access_token: str, track_id: str) -> SpotifyTrack
+        Retrieves a specific track by its Spotify ID.
+    get_artists_by_ids(access_token: str, artist_ids: list[str]) -> list[SpotifyArtist]
+        Retrieves multiple artists by their Spotify IDs.
+    get_tracks_by_ids(access_token: str, track_ids: list[str]) -> list[SpotifyTrack]
+        Retrieves multiple tracks by their Spotify IDs.
     """
 
     def __init__(

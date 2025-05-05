@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 
 from api.models.models import LyricsResponse, EmotionalProfileResponse, EmotionalProfile, SpotifyTrack, \
-    SpotifyTrackArtist, TopEmotion, SpotifyImage
+    SpotifyTrackArtist, TopEmotion, SpotifyImage, LyricsRequest, EmotionalProfileRequest
 from api.services.analysis_service import AnalysisServiceException
 from api.services.insights_service import InsightsServiceException
 from api.services.lyrics_service import LyricsServiceException
@@ -26,7 +26,7 @@ def mock_top_tracks(mock_spotify_track_factory) -> list[SpotifyTrack]:
 
 @pytest.fixture
 def mock_lyrics_list(mock_lyrics_response_factory) -> list[LyricsResponse]:
-    return [mock_lyrics_response_factory(str(id)) for i in range(1, 6)]
+    return [mock_lyrics_response_factory(str(i)) for i in range(1, 6)]
 
 
 @pytest.fixture
@@ -235,11 +235,17 @@ async def test_get_top_emotions_returns_expected_top_emotions(
         mock_emotional_profiles,
         limit
 ):
+    access_token = "access"
+    time_range = "short-term"
     mock_spotify_data_service.get_top_tracks.return_value = mock_top_tracks
     mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_list
     mock_analysis_service.get_emotional_profiles.return_value = mock_emotional_profiles
 
-    top_emotions = await insights_service.get_top_emotions(access_token="", time_range="", limit=limit)
+    top_emotions = await insights_service.get_top_emotions(
+        access_token=access_token,
+        time_range=time_range,
+        limit=limit
+    )
 
     all_top_emotions = [
         TopEmotion(name="defiance", percentage=0.25, track_id="2"),
@@ -250,3 +256,24 @@ async def test_get_top_emotions_returns_expected_top_emotions(
     ]
     expected_top_emotions = all_top_emotions[:limit]
     assert top_emotions == expected_top_emotions
+    mock_spotify_data_service.get_top_tracks.assert_called_once_with(
+        access_token=access_token,
+        time_range=time_range,
+        limit=30
+    )
+    lyrics_requests = [
+        LyricsRequest(track_id="1", artist_name="artist_name", track_title="track_name"),
+        LyricsRequest(track_id="2", artist_name="artist_name", track_title="track_name"),
+        LyricsRequest(track_id="3", artist_name="artist_name", track_title="track_name"),
+        LyricsRequest(track_id="4", artist_name="artist_name", track_title="track_name"),
+        LyricsRequest(track_id="5", artist_name="artist_name", track_title="track_name")
+    ]
+    mock_lyrics_service.get_lyrics_list.assert_called_once_with(lyrics_requests)
+    emotional_profile_requests = [
+        EmotionalProfileRequest(track_id="1", lyrics="lyrics"),
+        EmotionalProfileRequest(track_id="2", lyrics="lyrics"),
+        EmotionalProfileRequest(track_id="3", lyrics="lyrics"),
+        EmotionalProfileRequest(track_id="4", lyrics="lyrics"),
+        EmotionalProfileRequest(track_id="5", lyrics="lyrics")
+    ]
+    mock_analysis_service.get_emotional_profiles.assert_called_once_with(emotional_profile_requests)

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
@@ -8,13 +8,12 @@ from api.models.models import TokenData
 from api.services.spotify.spotify_auth_service import SpotifyAuthService, SpotifyAuthServiceException
 from api.settings import Settings
 
-# 1. Test that /auth/spotify/login returns expected redirect response.
-# 2. Test that /auth/spotify/callback returns error response if request cannot be authenticated.
-# 3. Test that /auth/spotify/callback returns error response if the spotify auth service fails to create tokens.
-# 4. Test that /auth/spotify/callback returns expected redirected response.
 
-TEST_FRONTEND_URL = "http://test-frontend-url.com"
-MOCK_OAUTH_STATE = "12345"
+# 1. Test /auth/tokens/refresh returns 401 error if SpotifyAuthServiceException occurs.
+# 2. Test /auth/tokens/refresh returns 500 error if any other exception occurs.
+# 3. Test /auth/tokens/refresh returns 422 error if any request data type invalid.
+# 4. Test /auth/tokens/refresh returns 500 error if any response data type invalid.
+# 5. Test /auth/tokens/refresh returns expected data.
 
 
 @pytest.fixture
@@ -23,73 +22,81 @@ def mock_spotify_auth_service() -> MagicMock:
 
 
 @pytest.fixture
-def mock_settings() -> MagicMock:
-    mock = MagicMock(spec=Settings)
-    mock.frontend_url = TEST_FRONTEND_URL
-    return mock
+def mock_refresh_request() -> dict[str, str]:
+    return {"refresh_token" : "refresh"}
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(app, follow_redirects=False)
-
-
-def test_login_success(client, mock_spotify_auth_service):
-    location = "test"
+def client(mock_spotify_auth_service):
     app.dependency_overrides[get_spotify_auth_service] = lambda: mock_spotify_auth_service
-    mock_spotify_auth_service.generate_auth_url.return_value = location
 
-    res = client.get("/auth/spotify/login")
+    yield TestClient(app, follow_redirects=False, raise_server_exceptions=False)
 
-    headers = res.headers
-    assert (
-            res.status_code == 307 and
-            headers["location"] == location and
-            "oauth_state" in headers["set-cookie"]
-    )
+    app.dependency_overrides = {}
 
 
-def test_callback_state_authentication_failure(client, mock_settings):
-    app.dependency_overrides[get_settings] = lambda: mock_settings
+# 1. Test /auth/tokens/refresh returns 401 error if SpotifyAuthServiceException occurs.
+def test_refresh_tokens_route_returns_401_error_if_spotify_auth_service_exception_occurs(
+        client,
+        mock_spotify_auth_service,
+        mock_refresh_request
+):
+    mock_refresh_tokens = AsyncMock()
+    mock_refresh_tokens.side_effect = SpotifyAuthServiceException("Test")
+    mock_spotify_auth_service.refresh_tokens = mock_refresh_tokens
 
-    # state request param mismatch with cookie oauth_state
-    client.cookies.set("oauth_state", MOCK_OAUTH_STATE)
-    res = client.get(f"/auth/spotify/callback?code=code&state=state")
+    res = client.post(url="/auth/tokens/refresh", json=mock_refresh_request)
 
-    assert (
-            res.status_code == 307 and
-            res.headers["location"] == f"{TEST_FRONTEND_URL}/#error=authentication-failure"
-    )
-
-
-def test_callback_auth_service_failure(client, mock_spotify_auth_service, mock_settings):
-    app.dependency_overrides[get_spotify_auth_service] = lambda: mock_spotify_auth_service
-    app.dependency_overrides[get_settings] = lambda: mock_settings
-    mock_spotify_auth_service.create_tokens.side_effect = SpotifyAuthServiceException("Test")
-
-    # state request param matches cookie oauth_state
-    client.cookies.set("oauth_state", MOCK_OAUTH_STATE)
-    res = client.get(f"/auth/spotify/callback?code=code&state={MOCK_OAUTH_STATE}")
-
-    assert (
-            res.status_code == 307 and
-            res.headers["location"] == f"{TEST_FRONTEND_URL}/#error=authentication-failure"
-    )
+    assert res.status_code == 401 and res.json() == {"detail" : "Invalid refresh token."}
 
 
-def test_callback_success(client, mock_spotify_auth_service, mock_settings):
-    app.dependency_overrides[get_spotify_auth_service] = lambda: mock_spotify_auth_service
-    app.dependency_overrides[get_settings] = lambda: mock_settings
-    mock_spotify_auth_service.create_tokens.return_value = TokenData(access_token="access", refresh_token="refresh")
+# 2. Test /auth/tokens/refresh returns 500 error if any other exception occurs.
+def test_refresh_tokens_route_returns_500_error_if_other_exception_occurs(
+        client,
+        mock_spotify_auth_service,
+        mock_refresh_request
+):
+    mock_refresh_tokens = AsyncMock()
+    mock_refresh_tokens.side_effect = Exception("Test")
+    mock_spotify_auth_service.refresh_tokens = mock_refresh_tokens
 
-    # state request param matches cookie oauth_state
-    client.cookies.set("oauth_state", MOCK_OAUTH_STATE)
-    res = client.get(f"/auth/spotify/callback?code=code&state={MOCK_OAUTH_STATE}")
+    res = client.post(url="/auth/tokens/refresh", json=mock_refresh_request)
 
-    headers = res.headers
-    assert (
-            res.status_code == 307 and
-            headers["location"] == TEST_FRONTEND_URL and
-            "access" in headers["set-cookie"] and
-            "refresh" in headers["set-cookie"]
-    )
+    assert res.status_code == 500 and res.json() == {"detail": "Something went wrong. Please try again later."}
+
+
+# 3. Test /auth/tokens/refresh returns 422 error if any request data type invalid.
+def test_refresh_tokens_route_returns_422_error_if_request_data_type_invalid(
+        client,
+        mock_spotify_auth_service,
+        mock_refresh_request
+):
+    res = client.post(url="/auth/tokens/refresh", json="invalid")
+
+    assert res.status_code == 422
+
+
+# 4. Test /auth/tokens/refresh returns 500 error if any response data type invalid.
+def test_refresh_tokens_route_returns_500_error_if_response_data_type_invalid(
+        client,
+        mock_spotify_auth_service,
+        mock_refresh_request
+):
+    mock_refresh_tokens = AsyncMock()
+    mock_refresh_tokens.return_value = {}
+    mock_spotify_auth_service.refresh_tokens = mock_refresh_tokens
+
+    res = client.post(url="/auth/tokens/refresh", json=mock_refresh_request)
+
+    assert res.status_code == 500
+
+
+# 4. Test /auth/tokens/refresh returns expected data.
+def test_refresh_tokens_route_returns_expected_data(client, mock_spotify_auth_service, mock_refresh_request):
+    mock_refresh_tokens = AsyncMock()
+    mock_refresh_tokens.return_value = TokenData(access_token="access", refresh_token="refresh")
+    mock_spotify_auth_service.refresh_tokens = mock_refresh_tokens
+
+    res = client.post(url="/auth/tokens/refresh", json=mock_refresh_request)
+
+    assert res.status_code == 200 and res.json() == {"access_token": "access", "refresh_token": "refresh"}

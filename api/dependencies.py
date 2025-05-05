@@ -35,8 +35,6 @@ def get_spotify_auth_service(
         client_id=settings.spotify_client_id,
         client_secret=settings.spotify_client_secret,
         base_url=settings.spotify_auth_base_url,
-        redirect_uri=settings.spotify_auth_redirect_uri,
-        auth_scope=settings.spotify_auth_user_scope,
         endpoint_requester=endpoint_requester
     )
 

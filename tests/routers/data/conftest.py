@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 import pytest
 from starlette.testclient import TestClient
 
-from api.dependencies import get_tokens_from_cookies, get_spotify_data_service, get_insights_service
+from api.dependencies import get_spotify_data_service, get_insights_service
 from api.main import app
-from api.models.models import TokenData, SpotifyItemResponse
+from api.models.models import TokenData
 from api.services.insights_service import InsightsService
 from api.services.spotify.spotify_data_service import SpotifyDataService
 
@@ -30,7 +30,6 @@ def mock_response_tokens() -> MagicMock:
 
 @pytest.fixture
 def client(mock_request_tokens, mock_spotify_data_service, mock_insights_service) -> TestClient:
-    app.dependency_overrides[get_tokens_from_cookies] = lambda: mock_request_tokens
     app.dependency_overrides[get_spotify_data_service] = lambda: mock_spotify_data_service
     app.dependency_overrides[get_insights_service] = lambda: mock_insights_service
     return TestClient(app, follow_redirects=False)
@@ -48,7 +47,7 @@ def mock_item_factory():
 
 @pytest.fixture
 def mock_item_response(mock_item_factory, mock_response_tokens) -> MagicMock:
-    mock = MagicMock(spec=SpotifyItemResponse)
+    mock = MagicMock()
     mock.data = mock_item_factory(item_id="1")
     mock.tokens = mock_response_tokens
     return mock

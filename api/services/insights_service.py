@@ -25,25 +25,18 @@ class InsightsServiceException(Exception):
 
 class InsightsService:
     """
-    A service for analyzing emotional analyses of top tracks.
+    A service for analyzing emotional content in a user's top tracks.
 
-    This service retrieves the user's top tracks from Spotify, fetches their lyrics,
-    analyzes the lyrics for emotional content, and aggregates the results to determine
-    the most prominent emotions.
-
-    Attributes
-    ----------
-    spotify_data_service : SpotifyDataService
-        The service responsible for fetching top tracks from Spotify.
-    lyrics_service : LyricsService
-        The service responsible for retrieving song lyrics.
-    analysis_service : AnalysisService
-        The service responsible for analyzing song lyrics for emotional content.
+    This service orchestrates the retrieval of top tracks from Spotify,
+    fetching their lyrics, analyzing the lyrics for emotional content,
+    and providing insights into the user's emotional listening patterns.
 
     Methods
     -------
-    get_top_emotions(tokens, limit=5)
-        Retrieves the top emotions detected in a user's top tracks.
+    get_top_emotions(access_token: str, time_range: str, limit: int) -> list[TopEmotion]
+        Retrieves the top emotions detected in a user's top Spotify tracks.
+    tag_lyrics_with_emotion(access_token: str, track_id: str, emotion: Emotion) -> EmotionalTagsResponse
+        Retrieves emotional tags for a given track's lyrics based on the specified emotion.
     """
 
     def __init__(

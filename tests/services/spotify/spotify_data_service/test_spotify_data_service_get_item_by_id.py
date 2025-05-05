@@ -92,7 +92,7 @@ async def test_get_artist_by_id_calls_expected_methods(spotify_data_service):
     spotify_data_service._get_item_data_by_id = mock__get_item_data_by_id
     spotify_data_service._create_artist = mock__create_artist
 
-    await spotify_data_service.get_artist_by_id(access_token="access", item_id="1")
+    await spotify_data_service.get_artist_by_id(access_token="access", artist_id="1")
 
     mock__get_item_data_by_id.assert_called_once_with(access_token="access", item_id="1", item_type=SpotifyItemType.ARTIST)
     mock__create_artist.assert_called_once()
@@ -106,7 +106,7 @@ async def test_get_track_by_id_calls_expected_methods(spotify_data_service):
     spotify_data_service._get_item_data_by_id = mock__get_item_data_by_id
     spotify_data_service._create_track = mock__create_track
 
-    await spotify_data_service.get_track_by_id(access_token="access", item_id="1")
+    await spotify_data_service.get_track_by_id(access_token="access", track_id="1")
 
     mock__get_item_data_by_id.assert_called_once_with(access_token="access", item_id="1", item_type=SpotifyItemType.TRACK)
     mock__create_track.assert_called_once()

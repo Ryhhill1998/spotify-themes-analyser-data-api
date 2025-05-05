@@ -40,7 +40,7 @@ async def get_artist_by_id(
     """
 
     try:
-        artist = await spotify_data_service.get_artist_by_id(access_token=access_token.access_token, item_id=artist_id)
+        artist = await spotify_data_service.get_artist_by_id(access_token=access_token.access_token, artist_id=artist_id)
         return artist
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested artist"

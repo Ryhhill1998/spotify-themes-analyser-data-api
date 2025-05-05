@@ -406,13 +406,13 @@ class SpotifyDataService(SpotifyService):
             logger.error(f"{error_message} - {e}")
             raise SpotifyDataServiceException(error_message)
         
-    async def get_artist_by_id(self, access_token: str, item_id: str) -> SpotifyArtist:
-        item = await self._get_item_data_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.ARTIST)
+    async def get_artist_by_id(self, access_token: str, artist_id: str) -> SpotifyArtist:
+        item = await self._get_item_data_by_id(access_token=access_token, item_id=artist_id, item_type=SpotifyItemType.ARTIST)
         artist = self._create_artist(item)
         return artist
     
-    async def get_track_by_id(self, access_token: str, item_id: str) -> SpotifyTrack:
-        item = await self._get_item_data_by_id(access_token=access_token, item_id=item_id, item_type=SpotifyItemType.TRACK)
+    async def get_track_by_id(self, access_token: str, track_id: str) -> SpotifyTrack:
+        item = await self._get_item_data_by_id(access_token=access_token, item_id=track_id, item_type=SpotifyItemType.TRACK)
         track = self._create_track(item)
         return track
 

@@ -20,35 +20,8 @@ from api.services.spotify.spotify_data_service import SpotifyDataServiceExceptio
 
 
 @pytest.fixture
-def mock_spotify_track_factory():
-    def _create(track_id: str = "1", artist_id: str = "1") -> SpotifyTrack:
-        return SpotifyTrack(
-            id=track_id,
-            name="track_name",
-            images=[SpotifyImage(height=100, width=100, url="image_url")],
-            spotify_url="spotify_url",
-            artist=SpotifyTrackArtist(id=artist_id, name="artist_name"),
-            release_date="release_date",
-            album_name="album_name",
-            explicit=False,
-            duration_ms=180000,
-            popularity=50
-        )
-
-    return _create
-
-
-@pytest.fixture
 def mock_top_tracks(mock_spotify_track_factory) -> list[SpotifyTrack]:
     return [mock_spotify_track_factory(track_id=str(i), artist_id=str(i)) for i in range(1, 6)]
-
-
-@pytest.fixture
-def mock_lyrics_response_factory():
-    def _create(track_id: str) -> LyricsResponse:
-        return LyricsResponse(track_id=track_id, artist_name="artist_name", track_title="track_title", lyrics="lyrics")
-
-    return _create
 
 
 @pytest.fixture

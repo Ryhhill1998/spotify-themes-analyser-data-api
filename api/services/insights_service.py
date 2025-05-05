@@ -254,10 +254,6 @@ class InsightsService:
             error_message = f"Service failure - {e}"
             logger.error(error_message)
             raise InsightsServiceException(error_message)
-        except (pydantic.ValidationError, AttributeError) as e:
-            error_message = f"Data validation failure - {e}"
-            logger.error(error_message)
-            raise InsightsServiceException(error_message)
 
     async def tag_lyrics_with_emotion(
             self,
@@ -289,7 +285,7 @@ class InsightsService:
         try:
             track = await self.spotify_data_service.get_track_by_id(
                 access_token=access_token,
-                item_id=track_id
+                track_id=track_id
             )
 
             lyrics_request = LyricsRequest(track_id=track.id, artist_name=track.artist.name, track_title=track.name)
@@ -305,9 +301,5 @@ class InsightsService:
             return emotional_tags_response
         except (SpotifyDataServiceException, LyricsServiceException, AnalysisServiceException) as e:
             error_message = f"Service failure - {e}"
-            logger.error(error_message)
-            raise InsightsServiceException(error_message)
-        except (pydantic.ValidationError, AttributeError) as e:
-            error_message = f"Data validation failure - {e}"
             logger.error(error_message)
             raise InsightsServiceException(error_message)

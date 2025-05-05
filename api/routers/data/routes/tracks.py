@@ -42,7 +42,7 @@ async def get_track_by_id(
     """
 
     try:
-        track = await spotify_data_service.get_track_by_id(access_token=access_token.access_token, item_id=track_id)
+        track = await spotify_data_service.get_track_by_id(access_token=access_token.access_token, track_id=track_id)
         return track
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested track"

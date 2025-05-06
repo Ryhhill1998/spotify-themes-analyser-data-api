@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import pytest
 
 from api.services.insights_service import InsightsServiceException
@@ -30,13 +28,12 @@ BASE_URL = "/data/tracks"
 # 8. Test /data/tracks returns expected response.
 
 # -------------------- GET LYRICS TAGGED WITH EMOTION -------------------- #
-# 1. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if InsightsServiceException occurs.
-# 2. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if general exception occurs.
-# 3. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request sends no POST body.
-# 4. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request missing access token.
-# 5. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request missing emotion.
-# 6. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if requested emotion invalid.
-# 7. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns expected response.
+# 1. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if InsightsServiceException occurs.
+# 2. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if general exception occurs.
+# 3. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request sends no POST body.
+# 4. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request missing access token.
+# 5. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if response data type invalid.
+# 6. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns expected response.
 
 
 @pytest.fixture
@@ -98,18 +95,14 @@ def test_get_track_by_id_returns_500_error_if_general_exception_occurs(
 
 
 # 5. Test /data/tracks/{track_id} returns 422 error if request sends no POST body.
-def test_get_track_by_id_returns_422_error_if_request_sends_no_post_body(client, mock_spotify_data_service):
-    mock_spotify_data_service.get_track_by_id.side_effect = Exception("Test")
-
+def test_get_track_by_id_returns_422_error_if_request_sends_no_post_body(client):
     res = client.post(url=f"{BASE_URL}/1")
 
     assert res.status_code == 422
 
 
 # 6. Test /data/tracks/{track_id} returns 422 error if request missing access token.
-def test_get_track_by_id_returns_422_error_if_request_missing_access_token(client, mock_spotify_data_service):
-    mock_spotify_data_service.get_track_by_id.side_effect = Exception("Test")
-
+def test_get_track_by_id_returns_422_error_if_request_missing_access_token(client):
     res = client.post(url=f"{BASE_URL}/1", json={"refresh_token": "refresh"})
 
     assert res.status_code == 422
@@ -212,17 +205,14 @@ def test_get_several_tracks_by_ids_returns_500_error_if_general_exception_occurs
 
 
 # 5. Test /data/tracks returns 422 error if request sends no POST body.
-def test_get_several_tracks_by_ids_returns_422_error_if_request_sends_no_post_body(client, mock_spotify_data_service):
-    mock_spotify_data_service.get_tracks_by_ids.side_effect = Exception("Test")
-
+def test_get_several_tracks_by_ids_returns_422_error_if_request_sends_no_post_body(client):
     res = client.post(url=BASE_URL)
 
     assert res.status_code == 422
 
 
 # 6. Test /data/tracks returns 422 error if request missing access token.
-def test_get_several_tracks_by_ids_returns_422_error_if_request_missing_access_token(client, mock_spotify_data_service):
-    mock_spotify_data_service.get_tracks_by_ids.side_effect = Exception("Test")
+def test_get_several_tracks_by_ids_returns_422_error_if_request_missing_access_token(client):
     request_body = {"requested_tracks": {"ids": []}}
 
     res = client.post(url=BASE_URL, json=request_body)
@@ -322,10 +312,58 @@ def test_get_several_tracks_by_ids_returns_expected_response(
 
 
 # -------------------- GET LYRICS TAGGED WITH EMOTION -------------------- #
-# 1. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if InsightsServiceException occurs.
-# 2. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if general exception occurs.
-# 3. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request sends no POST body.
-# 4. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request missing access token.
-# 5. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request missing emotion.
-# 6. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if requested emotion invalid.
-# 7. Test that /tracks/{track_id}/lyrics/emotions/{emotion} returns expected response.
+# 1. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if InsightsServiceException occurs.
+def test_get_lyrics_tagged_with_emotion_returns_500_error_if_insights_service_exception_occurs(
+        client,
+        mock_insights_service,
+        mock_access_token_request
+):
+    mock_insights_service.tag_lyrics_with_emotion.side_effect = InsightsServiceException("Test")
+
+    res = client.post(url=f"{BASE_URL}/1/lyrics/emotional-tags/sadness", json=mock_access_token_request)
+
+    assert res.status_code == 500 and res.json() == {"detail": "Failed to tag lyrics with requested emotion: sadness"}
+    
+
+# 2. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if general exception occurs.
+def test_get_lyrics_tagged_with_emotion_returns_500_error_if_general_exception_occurs(
+        client,
+        mock_insights_service,
+        mock_access_token_request
+):
+    mock_insights_service.tag_lyrics_with_emotion.side_effect = Exception("Test")
+
+    res = client.post(url=f"{BASE_URL}/1/lyrics/emotional-tags/sadness", json=mock_access_token_request)
+
+    assert res.status_code == 500 and res.json() == {"detail": "Something went wrong. Please try again later."}
+
+
+# 3. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request sends no POST body.
+def test_get_lyrics_tagged_with_emotion_returns_422_error_if_request_sends_no_post_body(client):
+    res = client.post(url=f"{BASE_URL}/1/lyrics/emotional-tags/sadness")
+
+    assert res.status_code == 422
+
+
+# 4. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request missing access token.
+def test_get_lyrics_tagged_with_emotion_returns_422_error_if_request_missing_access_token(client):
+    res = client.post(url=f"{BASE_URL}/1/lyrics/emotional-tags/sadness", json={"refresh_token": "refresh"})
+
+    assert res.status_code == 422
+
+
+# 5. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if response data type invalid.
+def test_get_lyrics_tagged_with_emotion_returns_422_error_if_response_data_type_invalid(
+        client,
+        mock_insights_service,
+        mock_access_token_request
+):
+    mock_insights_service.tag_lyrics_with_emotion.return_value = {}
+
+    res = client.post(url=f"{BASE_URL}/1/lyrics/emotional-tags/sadness", json=mock_access_token_request)
+
+    assert res.status_code == 500
+
+
+# 6. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns expected response.
+

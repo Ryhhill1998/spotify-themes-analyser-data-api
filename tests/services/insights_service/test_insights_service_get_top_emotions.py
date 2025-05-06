@@ -20,11 +20,6 @@ from api.services.spotify.spotify_data_service import SpotifyDataServiceExceptio
 
 
 @pytest.fixture
-def mock_top_tracks(mock_spotify_track_factory) -> list[SpotifyTrack]:
-    return [mock_spotify_track_factory(track_id=str(i), artist_id=str(i)) for i in range(1, 6)]
-
-
-@pytest.fixture
 def mock_lyrics_list(mock_lyrics_response_factory) -> list[LyricsResponse]:
     return [mock_lyrics_response_factory(str(i)) for i in range(1, 6)]
 
@@ -194,10 +189,10 @@ async def test_get_top_items_raises_insights_service_exception_if_top_tracks_emp
 async def test_get_top_items_raises_insights_service_exception_if_lyrics_list_empty(
         insights_service,
         mock_spotify_data_service,
-        mock_top_tracks,
+        mock_spotify_tracks,
         mock_lyrics_service
 ):
-    mock_spotify_data_service.get_top_tracks.return_value = mock_top_tracks
+    mock_spotify_data_service.get_top_tracks.return_value = mock_spotify_tracks
     mock_lyrics_service.get_lyrics_list.return_value = []
 
     with pytest.raises(InsightsServiceException, match="No lyrics found. Cannot proceed further with analysis."):
@@ -209,12 +204,12 @@ async def test_get_top_items_raises_insights_service_exception_if_lyrics_list_em
 async def test_get_top_items_raises_insights_service_exception_if_top_tracks_empty(
         insights_service,
         mock_spotify_data_service,
-        mock_top_tracks,
+        mock_spotify_tracks,
         mock_lyrics_service,
         mock_lyrics_list,
         mock_analysis_service
 ):
-    mock_spotify_data_service.get_top_tracks.return_value = mock_top_tracks
+    mock_spotify_data_service.get_top_tracks.return_value = mock_spotify_tracks
     mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_list
     mock_analysis_service.get_emotional_profiles.return_value = []
 
@@ -228,7 +223,7 @@ async def test_get_top_items_raises_insights_service_exception_if_top_tracks_emp
 async def test_get_top_emotions_returns_expected_top_emotions(
         insights_service,
         mock_spotify_data_service,
-        mock_top_tracks,
+        mock_spotify_tracks,
         mock_lyrics_service,
         mock_lyrics_list,
         mock_analysis_service,
@@ -237,7 +232,7 @@ async def test_get_top_emotions_returns_expected_top_emotions(
 ):
     access_token = "access"
     time_range = "short-term"
-    mock_spotify_data_service.get_top_tracks.return_value = mock_top_tracks
+    mock_spotify_data_service.get_top_tracks.return_value = mock_spotify_tracks
     mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_list
     mock_analysis_service.get_emotional_profiles.return_value = mock_emotional_profiles
 

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import JSONResponse
 from loguru import logger
 
 from api.dependencies import SpotifyDataServiceDependency, InsightsServiceDependency
 from api.models.models import Emotion, EmotionalTagsResponse, SpotifyTrack, AccessToken, RequestedItems
 from api.services.insights_service import InsightsServiceException
-from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException, \
+    SpotifyDataServiceUnauthorisedException
 
 router = APIRouter()
 
@@ -44,6 +44,10 @@ async def get_track_by_id(
     try:
         track = await spotify_data_service.get_track_by_id(access_token=access_token.access_token, track_id=track_id)
         return track
+    except SpotifyDataServiceUnauthorisedException as e:
+        error_message = "Invalid access token"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_message)
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested track"
         logger.error(f"{error_message} - {e}")
@@ -91,6 +95,10 @@ async def get_several_tracks_by_ids(
             track_ids=requested_tracks.ids
         )
         return tracks
+    except SpotifyDataServiceUnauthorisedException as e:
+        error_message = "Invalid access token"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_message)
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested tracks"
         logger.error(f"{error_message} - {e}")

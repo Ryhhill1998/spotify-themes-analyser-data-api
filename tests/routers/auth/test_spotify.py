@@ -11,8 +11,8 @@ from api.settings import Settings
 
 # 1. Test /auth/tokens/refresh returns 401 error if SpotifyAuthServiceException occurs.
 # 2. Test /auth/tokens/refresh returns 500 error if any other exception occurs.
-# 3. Test /auth/tokens/refresh returns 422 error if any request data type invalid.
-# 4. Test /auth/tokens/refresh returns 500 error if any response data type invalid.
+# 3. Test /auth/tokens/refresh returns 422 error if request data type invalid.
+# 4. Test /auth/tokens/refresh returns 500 error if response data type invalid.
 # 5. Test /auth/tokens/refresh returns expected data.
 
 
@@ -36,7 +36,7 @@ def client(mock_spotify_auth_service):
 
 
 # 1. Test /auth/tokens/refresh returns 401 error if SpotifyAuthServiceException occurs.
-def test_refresh_tokens_route_returns_401_error_if_spotify_auth_service_exception_occurs(
+def test_refresh_tokens_returns_401_error_if_spotify_auth_service_exception_occurs(
         client,
         mock_spotify_auth_service,
         mock_refresh_request
@@ -51,7 +51,7 @@ def test_refresh_tokens_route_returns_401_error_if_spotify_auth_service_exceptio
 
 
 # 2. Test /auth/tokens/refresh returns 500 error if any other exception occurs.
-def test_refresh_tokens_route_returns_500_error_if_other_exception_occurs(
+def test_refresh_tokens_returns_500_error_if_other_exception_occurs(
         client,
         mock_spotify_auth_service,
         mock_refresh_request
@@ -65,8 +65,8 @@ def test_refresh_tokens_route_returns_500_error_if_other_exception_occurs(
     assert res.status_code == 500 and res.json() == {"detail": "Something went wrong. Please try again later."}
 
 
-# 3. Test /auth/tokens/refresh returns 422 error if any request data type invalid.
-def test_refresh_tokens_route_returns_422_error_if_request_data_type_invalid(
+# 3. Test /auth/tokens/refresh returns 422 error if request data type invalid.
+def test_refresh_tokens_returns_422_error_if_request_data_type_invalid(
         client,
         mock_spotify_auth_service,
         mock_refresh_request
@@ -76,8 +76,8 @@ def test_refresh_tokens_route_returns_422_error_if_request_data_type_invalid(
     assert res.status_code == 422
 
 
-# 4. Test /auth/tokens/refresh returns 500 error if any response data type invalid.
-def test_refresh_tokens_route_returns_500_error_if_response_data_type_invalid(
+# 4. Test /auth/tokens/refresh returns 500 error if response data type invalid.
+def test_refresh_tokens_returns_500_error_if_response_data_type_invalid(
         client,
         mock_spotify_auth_service,
         mock_refresh_request
@@ -92,7 +92,7 @@ def test_refresh_tokens_route_returns_500_error_if_response_data_type_invalid(
 
 
 # 4. Test /auth/tokens/refresh returns expected data.
-def test_refresh_tokens_route_returns_expected_data(client, mock_spotify_auth_service, mock_refresh_request):
+def test_refresh_tokens_returns_expected_data(client, mock_spotify_auth_service, mock_refresh_request):
     mock_refresh_tokens = AsyncMock()
     mock_refresh_tokens.return_value = TokenData(access_token="access", refresh_token="refresh")
     mock_spotify_auth_service.refresh_tokens = mock_refresh_tokens

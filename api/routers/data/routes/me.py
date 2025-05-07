@@ -167,7 +167,7 @@ async def get_top_genres(
         access_token: AccessToken,
         spotify_data_service: SpotifyDataServiceDependency,
         time_range: TimeRange,
-        limit: Annotated[int, Field(ge=1)] = 5
+        limit: Annotated[int, Field(ge=1)] = 10
 ) -> list[TopGenre]:
     """
     Retrieves the user's top genres from Spotify.
@@ -181,7 +181,7 @@ async def get_top_genres(
     time_range : TimeRange
         The time range to retrieve the top genres for.
     limit : int
-        Limit to specify the number of top genres to retrieve (default is 5, must be at least 1).
+        Limit to specify the number of top genres to retrieve (default is 10, must be at least 1).
 
     Returns
     -------

@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from api.dependencies import get_settings
@@ -80,12 +79,3 @@ async def log_requests(request: Request, call_next):
     logger.info(f"Set-Cookie Headers: {set_cookie_headers}")
 
     return response
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)

@@ -21,9 +21,6 @@ class Settings(BaseSettings):
     analysis_base_url : str
         The base URL for the analysis API.
 
-    allowed_origins : list[str]
-        A list of allowed origins for CORS configuration.
-
     model_config : SettingsConfigDict
         Configuration for loading environment variables from a `.env` file.
     """
@@ -35,7 +32,5 @@ class Settings(BaseSettings):
 
     lyrics_base_url: str
     analysis_base_url: str
-
-    allowed_origins: list[str]
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

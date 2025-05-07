@@ -218,7 +218,7 @@ async def get_top_emotions(
         access_token: AccessToken,
         insights_service: InsightsServiceDependency,
         time_range: TimeRange,
-        limit: Annotated[int, Field(ge=1, le=15)] = 5
+        limit: Annotated[int, Field(ge=1, le=15)] = 15
 ) -> list[TopEmotion]:
     """
     Retrieves the user's top emotions based on their Spotify listening history.

@@ -57,7 +57,7 @@ from api.services.spotify.spotify_data_service import SpotifyDataServiceExceptio
 # 11. Test /data/me/top/genres returns expected response.
 
 # -------------------- GET TOP EMOTIONS -------------------- #
-# 1. Test /data/me/top/emotions returns 500 error if SpotifyDataServiceException occurs.
+# 1. Test /data/me/top/emotions returns 500 error if InsightsServiceException occurs.
 # 2. Test /data/me/top/emotions returns 500 error if general exception occurs.
 # 3. Test /data/me/top/emotions returns 422 error if request sends no POST body.
 # 4. Test /data/me/top/emotions returns 422 error if request missing access token.
@@ -806,13 +806,142 @@ def test_get_top_genres_returns_expected_response(
 
 
 # -------------------- GET TOP EMOTIONS -------------------- #
-# 1. Test /data/me/top/emotions returns 500 error if SpotifyDataServiceException occurs.
+EMOTIONS_URL = f"{BASE_URL}/top/emotions"
+
+
+# 1. Test /data/me/top/emotions returns 500 error if InsightsServiceException occurs.
+def test_get_top_emotions_returns_500_error_if_spotify_data_service_exception_occurs(
+        client,
+        mock_insights_service,
+        mock_access_token_request,
+        request_params
+):
+    mock_insights_service.get_top_emotions.side_effect = InsightsServiceException("Test")
+
+    res = client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    assert res.status_code == 500 and res.json() == {"detail": "Failed to retrieve the user's top emotions"}
+
+
 # 2. Test /data/me/top/emotions returns 500 error if general exception occurs.
+def test_get_top_emotions_returns_500_error_if_general_exception_occurs(
+        client,
+        mock_insights_service,
+        mock_access_token_request,
+        request_params
+):
+    mock_insights_service.get_top_emotions.side_effect = Exception("Test")
+
+    res = client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    assert res.status_code == 500 and res.json() == {"detail": "Something went wrong. Please try again later."}
+
+
 # 3. Test /data/me/top/emotions returns 422 error if request sends no POST body.
+def test_get_top_emotions_returns_422_error_if_request_sends_no_post_body(client, request_params):
+    res = client.post(url=EMOTIONS_URL, params=request_params)
+
+    assert res.status_code == 422
+    
+    
 # 4. Test /data/me/top/emotions returns 422 error if request missing access token.
+def test_get_top_emotions_returns_422_error_if_request_missing_access_token(client, request_params):
+    res = client.post(url=EMOTIONS_URL, params=request_params, json={"refresh_token": "refresh"})
+
+    assert res.status_code == 422
+
+
 # 5. Test /data/me/top/emotions returns 422 error if request missing time range.
+def test_get_top_emotions_returns_422_error_if_request_missing_time_range(
+        client,
+        mock_access_token_request,
+        request_params
+):
+    request_params.pop("time_range")
+
+    res = client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    assert res.status_code == 422
+
+
 # 6. Test /data/me/top/emotions returns 422 error if request invalid time range.
+def test_get_top_emotions_returns_422_error_if_request_time_range_invalid(
+        client,
+        mock_access_token_request,
+        request_params
+):
+    request_params["time_range"] = "short"
+
+    res = client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    assert res.status_code == 422
+
+
 # 7. Test /data/me/top/emotions returns 422 error if request missing limit.
+@pytest.mark.parametrize("limit", [0, -1, -50, 16, 50])
+def test_get_top_emotions_returns_422_error_if_request_limit_invalid(
+        client,
+        mock_access_token_request,
+        request_params,
+        limit
+):
+    request_params["limit"] = limit
+
+    res = client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    assert res.status_code == 422
+
+
 # 8. Test /data/me/top/emotions returns 422 error if request invalid limit.
+def test_get_top_emotions_returns_500_error_if_response_data_type_invalid(
+        client,
+        mock_insights_service,
+        mock_access_token_request,
+        request_params
+):
+    mock_insights_service.get_top_emotions.return_value = {}
+
+    res = client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    assert res.status_code == 500
+
+
 # 9. Test /data/me/top/emotions returns 500 error if response data type invalid.
+@pytest.mark.parametrize(
+    "time_range, limit, expected_limit",
+    [
+        ("short_term", None, 15),
+        ("medium_term", None, 15),
+        ("long_term", None, 15),
+        ("short_term", 5, 5),
+        ("medium_term", 5, 5),
+        ("long_term", 5, 5)
+    ]
+)
+def test_get_top_emotions_calls_get_top_emotions_with_expected_params(
+        client,
+        mock_insights_service,
+        mock_access_token_request,
+        request_params,
+        time_range,
+        limit,
+        expected_limit
+):
+    mock_get_top_emotions = AsyncMock()
+    mock_insights_service.get_top_emotions = mock_get_top_emotions
+    request_params["time_range"] = time_range
+    if limit is None:
+        request_params.pop("limit")
+    else:
+        request_params["limit"] = limit
+
+    client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    mock_insights_service.get_top_emotions.assert_called_once_with(
+        access_token="access",
+        time_range=time_range,
+        limit=expected_limit
+    )
+
+
 # 10. Test /data/me/top/emotions returns expected response.

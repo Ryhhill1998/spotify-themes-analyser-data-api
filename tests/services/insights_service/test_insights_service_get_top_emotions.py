@@ -2,8 +2,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from api.models.models import LyricsResponse, EmotionalProfileResponse, EmotionalProfile, SpotifyTrack, \
-    SpotifyTrackArtist, TopEmotion, SpotifyImage, LyricsRequest, EmotionalProfileRequest
+from api.models.models import LyricsResponse, EmotionalProfileResponse, EmotionalProfile, TopEmotion, LyricsRequest, \
+    EmotionalProfileRequest
 from api.services.analysis_service import AnalysisServiceException
 from api.services.insights_service import InsightsServiceException
 from api.services.lyrics_service import LyricsServiceException

@@ -2,11 +2,10 @@ from unittest.mock import MagicMock, AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
-from api.dependencies import get_spotify_auth_service, get_settings
+from api.dependencies import get_spotify_auth_service
 from api.main import app
 from api.models.models import TokenData
 from api.services.spotify.spotify_auth_service import SpotifyAuthService, SpotifyAuthServiceException
-from api.settings import Settings
 
 
 # 1. Test /auth/tokens/refresh returns 401 error if SpotifyAuthServiceException occurs.

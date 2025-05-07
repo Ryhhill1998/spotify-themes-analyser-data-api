@@ -1,6 +1,3 @@
-import pytest
-
-from api.models.models import SpotifyArtist, SpotifyImage
 from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException, \
     SpotifyDataServiceUnauthorisedException
 

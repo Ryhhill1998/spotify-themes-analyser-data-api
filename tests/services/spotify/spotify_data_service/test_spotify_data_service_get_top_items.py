@@ -2,7 +2,6 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from api.models.models import SpotifyArtist, SpotifyTrack
 from api.services.endpoint_requester import EndpointRequesterException, EndpointRequesterUnauthorisedException
 from api.services.spotify.spotify_data_service import SpotifyDataServiceException, SpotifyItemType
 

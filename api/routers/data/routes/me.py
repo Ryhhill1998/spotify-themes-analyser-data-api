@@ -54,6 +54,10 @@ async def get_profile(
         error_message = "Invalid access token"
         logger.error(f"{error_message} - {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_message)
+    except SpotifyDataServiceException as e:
+        error_message = "Failed to retrieve the user's profile"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_message)
 
 
 @router.post("/top/artists", response_model=list[SpotifyArtist])

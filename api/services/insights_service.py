@@ -6,7 +6,8 @@ from api.models.models import LyricsRequest, TopEmotion, EmotionalProfileRespons
     EmotionalTagsRequest, Emotion, EmotionalTagsResponse
 from api.services.analysis_service import AnalysisService, AnalysisServiceException
 from api.services.lyrics_service import LyricsService, LyricsServiceException
-from api.services.spotify.spotify_data_service import SpotifyDataService, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataService, SpotifyDataServiceException, \
+    SpotifyDataServiceUnauthorisedException
 
 
 class InsightsServiceException(Exception):

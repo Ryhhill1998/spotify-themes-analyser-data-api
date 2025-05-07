@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, AsyncMock
 
 import pytest
 
-from api.models.models import SpotifyProfile, SpotifyImage, TopGenre
+from api.models.models import SpotifyProfile, SpotifyImage, TopGenre, TopEmotion, EmotionPercentage
 from api.services.insights_service import InsightsServiceException
 from api.services.spotify.spotify_data_service import SpotifyDataServiceException, \
     SpotifyDataServiceUnauthorisedException
@@ -770,7 +770,7 @@ def test_get_top_genres_calls_get_top_genres_with_expected_params(
 
 
 @pytest.fixture
-def mock_top_genres_factory():
+def mock_top_genre_factory():
     def _create(name: str, percentage: float) -> TopGenre:
         return TopGenre(name=name, percentage=percentage)
 
@@ -782,15 +782,15 @@ def test_get_top_genres_returns_expected_response(
         client,
         mock_spotify_data_service,
         mock_access_token_request,
-        mock_top_genres_factory,
+        mock_top_genre_factory,
         request_params
 ):
     mock_spotify_data_service.get_top_genres.return_value = [
-        mock_top_genres_factory(name="genre1", percentage=0.36),
-        mock_top_genres_factory(name="genre2", percentage=0.22),
-        mock_top_genres_factory(name="genre3", percentage=0.17),
-        mock_top_genres_factory(name="genre4", percentage=0.14),
-        mock_top_genres_factory(name="genre5", percentage=0.1)
+        mock_top_genre_factory(name="genre1", percentage=0.36),
+        mock_top_genre_factory(name="genre2", percentage=0.22),
+        mock_top_genre_factory(name="genre3", percentage=0.17),
+        mock_top_genre_factory(name="genre4", percentage=0.14),
+        mock_top_genre_factory(name="genre5", percentage=0.1)
     ]
 
     res = client.post(url=GENRES_URL, params=request_params, json=mock_access_token_request)
@@ -944,4 +944,37 @@ def test_get_top_emotions_calls_get_top_emotions_with_expected_params(
     )
 
 
+@pytest.fixture
+def mock_top_emotion_factory():
+    def _create(name: str, percentage: EmotionPercentage, track_id: str) -> TopEmotion:
+        return TopEmotion(name=name, percentage=percentage, track_id=track_id)
+
+    return _create
+
+
 # 10. Test /data/me/top/emotions returns expected response.
+def test_get_top_emotions_returns_expected_response(
+        client,
+        mock_insights_service,
+        mock_access_token_request,
+        mock_top_emotion_factory,
+        request_params
+):
+    mock_insights_service.get_top_emotions.return_value = [
+        mock_top_emotion_factory(name="emotion1", percentage=0.42, track_id="1"),
+        mock_top_emotion_factory(name="emotion2", percentage=0.3, track_id="2"),
+        mock_top_emotion_factory(name="emotion3", percentage=0.16, track_id="3"),
+        mock_top_emotion_factory(name="emotion4", percentage=0.08, track_id="4"),
+        mock_top_emotion_factory(name="emotion5", percentage=0.04, track_id="5")
+    ]
+
+    res = client.post(url=EMOTIONS_URL, params=request_params, json=mock_access_token_request)
+
+    expected_json = [
+        {"name": "emotion1", "percentage": 0.42, "track_id": "1"},
+        {"name": "emotion2", "percentage": 0.3, "track_id": "2"},
+        {"name": "emotion3", "percentage": 0.16, "track_id": "3"},
+        {"name": "emotion4", "percentage": 0.08, "track_id": "4"},
+        {"name": "emotion5", "percentage": 0.04, "track_id": "5"}
+    ]
+    assert res.status_code == 200 and res.json() == expected_json

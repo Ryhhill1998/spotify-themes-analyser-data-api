@@ -1,5 +1,6 @@
 import pytest
 
+from api.models.models import EmotionalTagsResponse, Emotion
 from api.services.insights_service import InsightsServiceException
 from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException, \
     SpotifyDataServiceUnauthorisedException
@@ -366,4 +367,18 @@ def test_get_lyrics_tagged_with_emotion_returns_422_error_if_response_data_type_
 
 
 # 6. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns expected response.
+def test_get_lyrics_tagged_with_emotion_returns_expected_response(
+        client,
+        mock_insights_service,
+        mock_access_token_request
+):
+    mock_insights_service.tag_lyrics_with_emotion.return_value = EmotionalTagsResponse(
+        track_id="1",
+        lyrics="lyrics",
+        emotion=Emotion.SADNESS
+    )
 
+    res = client.post(url=f"{BASE_URL}/1/lyrics/emotional-tags/sadness", json=mock_access_token_request)
+
+    expected_json = {"track_id": "1", "lyrics": "lyrics", "emotion": "sadness"}
+    assert res.status_code == 200 and res.json() == expected_json

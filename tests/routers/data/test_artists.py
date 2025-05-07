@@ -26,28 +26,6 @@ from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFound
 
 BASE_URL = "/data/artists"
 
-
-@pytest.fixture
-def mock_spotify_artist_factory():
-    def _create(artist_id: str = "1") -> SpotifyArtist:
-        return SpotifyArtist(
-            id=artist_id,
-            name="artist_name",
-            images=[SpotifyImage(height=100, width=100, url="image_url")],
-            spotify_url="spotify_url",
-            genres=["genre1", "genre2", "genre3"],
-            followers=100,
-            popularity=50
-        )
-
-    return _create
-
-
-@pytest.fixture
-def mock_spotify_artists(mock_spotify_artist_factory) -> list[SpotifyArtist]:
-    return [mock_spotify_artist_factory(str(i)) for i in range(1, 6)]
-
-
 # -------------------- GET ARTIST BY ID -------------------- #
 ARTIST_URL = f"{BASE_URL}/1"
 

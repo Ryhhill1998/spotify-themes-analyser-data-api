@@ -118,7 +118,7 @@ class SpotifyDataService(SpotifyService):
     def _get_bearer_auth_headers(access_token: str) -> dict[str, str]:
         return {"Authorization": f"Bearer {access_token}"}
 
-    async def get_profile_data(self, access_token: str) -> SpotifyProfile:
+    async def get_user_profile(self, access_token: str) -> SpotifyProfile:
         """
         Fetches a user's profile from Spotify.
 

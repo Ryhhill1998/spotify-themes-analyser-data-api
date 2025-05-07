@@ -48,7 +48,7 @@ async def get_profile(
     """
 
     try:
-        profile_data = await spotify_data_service.get_profile_data(access_token.access_token)
+        profile_data = await spotify_data_service.get_user_profile(access_token.access_token)
         return profile_data
     except SpotifyDataServiceUnauthorisedException as e:
         error_message = "Invalid access token"

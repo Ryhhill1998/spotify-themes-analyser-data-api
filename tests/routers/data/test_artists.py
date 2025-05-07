@@ -28,11 +28,6 @@ BASE_URL = "/data/artists"
 
 
 @pytest.fixture
-def mock_access_token_request() -> dict[str, str]:
-    return {"access_token": "access"}
-
-
-@pytest.fixture
 def mock_spotify_artist_factory():
     def _create(artist_id: str = "1") -> SpotifyArtist:
         return SpotifyArtist(
@@ -54,6 +49,9 @@ def mock_spotify_artists(mock_spotify_artist_factory) -> list[SpotifyArtist]:
 
 
 # -------------------- GET ARTIST BY ID -------------------- #
+ARTIST_URL = f"{BASE_URL}/1"
+
+
 # 1. Test /data/artists/{artist_id} returns 401 error if SpotifyDataServiceUnauthorisedException occurs.
 def test_get_artist_by_id_returns_401_error_if_spotify_data_service_unauthorised_exception_occurs(
         client,
@@ -62,7 +60,7 @@ def test_get_artist_by_id_returns_401_error_if_spotify_data_service_unauthorised
 ):
     mock_spotify_data_service.get_artist_by_id.side_effect = SpotifyDataServiceUnauthorisedException("Test")
 
-    res = client.post(url=f"{BASE_URL}/1", json=mock_access_token_request)
+    res = client.post(url=ARTIST_URL, json=mock_access_token_request)
 
     assert res.status_code == 401 and res.json() == {"detail": "Invalid access token"}
 
@@ -75,7 +73,7 @@ def test_get_artist_by_id_returns_404_error_if_spotify_data_service_not_found_ex
 ):
     mock_spotify_data_service.get_artist_by_id.side_effect = SpotifyDataServiceNotFoundException("Test")
 
-    res = client.post(url=f"{BASE_URL}/1", json=mock_access_token_request)
+    res = client.post(url=ARTIST_URL, json=mock_access_token_request)
 
     assert res.status_code == 404 and res.json() == {"detail": "Could not find the requested artist"}
 
@@ -88,7 +86,7 @@ def test_get_artist_by_id_returns_500_error_if_spotify_data_service_exception_oc
 ):
     mock_spotify_data_service.get_artist_by_id.side_effect = SpotifyDataServiceException("Test")
 
-    res = client.post(url=f"{BASE_URL}/1", json=mock_access_token_request)
+    res = client.post(url=ARTIST_URL, json=mock_access_token_request)
 
     assert res.status_code == 500 and res.json() == {"detail": "Failed to retrieve the requested artist"}
 
@@ -101,21 +99,21 @@ def test_get_artist_by_id_returns_500_error_if_general_exception_occurs(
 ):
     mock_spotify_data_service.get_artist_by_id.side_effect = Exception("Test")
 
-    res = client.post(url=f"{BASE_URL}/1", json=mock_access_token_request)
+    res = client.post(url=ARTIST_URL, json=mock_access_token_request)
 
     assert res.status_code == 500 and res.json() == {"detail": "Something went wrong. Please try again later."}
 
 
 # 5. Test /data/artists/{artist_id} returns 422 error if request sends no POST body.
 def test_get_artist_by_id_returns_422_error_if_request_sends_no_post_body(client):
-    res = client.post(url=f"{BASE_URL}/1")
+    res = client.post(url=ARTIST_URL)
 
     assert res.status_code == 422
 
 
 # 6. Test /data/artists/{artist_id} returns 422 error if request missing access token.
 def test_get_artist_by_id_returns_422_error_if_request_missing_access_token(client):
-    res = client.post(url=f"{BASE_URL}/1", json={"refresh_token": "refresh"})
+    res = client.post(url=ARTIST_URL, json={"refresh_token": "refresh"})
 
     assert res.status_code == 422
 
@@ -128,7 +126,7 @@ def test_get_artist_by_id_returns_500_error_if_response_data_type_invalid(
 ):
     mock_spotify_data_service.get_artist_by_id.return_value = {}
 
-    res = client.post(url=f"{BASE_URL}/1", json=mock_access_token_request)
+    res = client.post(url=ARTIST_URL, json=mock_access_token_request)
 
     assert res.status_code == 500
 
@@ -142,7 +140,7 @@ def test_get_artist_by_id_returns_expected_response(
 ):
     mock_spotify_data_service.get_artist_by_id.return_value = mock_spotify_artist_factory()
 
-    res = client.post(url=f"{BASE_URL}/1", json=mock_access_token_request)
+    res = client.post(url=ARTIST_URL, json=mock_access_token_request)
 
     expected_json = {
         "id": "1",

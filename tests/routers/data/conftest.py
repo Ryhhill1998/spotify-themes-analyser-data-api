@@ -9,6 +9,11 @@ from api.services.insights_service import InsightsService
 
 
 @pytest.fixture
+def mock_access_token_request() -> dict[str, str]:
+    return {"access_token": "access"}
+
+
+@pytest.fixture
 def mock_insights_service() -> MagicMock:
     return MagicMock(spec=InsightsService)
 

@@ -26,7 +26,7 @@ async def test_get_profile_data_raises_spotify_data_service_unauthorised_excepti
     mock_endpoint_requester.get.side_effect = EndpointRequesterUnauthorisedException()
 
     with pytest.raises(SpotifyDataServiceUnauthorisedException) as e:
-        await spotify_data_service.get_profile_data("")
+        await spotify_data_service.get_user_profile("")
 
     assert "Invalid Spotify API access token" in str(e.value)
 
@@ -39,7 +39,7 @@ async def test_get_profile_data_raises_spotify_data_service_exception_if_endpoin
     mock_endpoint_requester.get.side_effect = EndpointRequesterException()
 
     with pytest.raises(SpotifyDataServiceException) as e:
-        await spotify_data_service.get_profile_data("")
+        await spotify_data_service.get_user_profile("")
 
     assert "Failed to make request to Spotify API" in str(e.value)
 
@@ -99,7 +99,7 @@ async def test_get_profile_data_raises_spotify_data_service_exception_if_api_dat
     mock_endpoint_requester.get.return_value = data
 
     with pytest.raises(SpotifyDataServiceException) as e:
-        await spotify_data_service.get_profile_data("")
+        await spotify_data_service.get_user_profile("")
 
     assert "Spotify API data validation failed" in str(e.value) and deleted_field in str(e.value)
 
@@ -114,7 +114,7 @@ async def test_get_profile_data_does_not_raise_exception_if_email_is_missing(
     data, deleted_field = delete_field(data=mock_profile_data, field="email")
     mock_endpoint_requester.get.return_value = data
 
-    await spotify_data_service.get_profile_data("")
+    await spotify_data_service.get_user_profile("")
 
 
 # 5. Test get_profile_data does not raise exception if email is None.
@@ -127,7 +127,7 @@ async def test_get_profile_data_does_not_raise_exception_if_email_is_none(
     mock_profile_data["email"] = None
     mock_endpoint_requester.get.return_value = mock_profile_data
 
-    await spotify_data_service.get_profile_data("")
+    await spotify_data_service.get_user_profile("")
 
 
 # 6. Test get_profile_data calls endpoint_requester.get with expected params.
@@ -139,7 +139,7 @@ async def test_get_profile_data_calls_endpoint_requester_get_with_expected_param
 ):
     mock_endpoint_requester.get.return_value = mock_profile_data
 
-    await spotify_data_service.get_profile_data("access")
+    await spotify_data_service.get_user_profile("access")
 
     mock_endpoint_requester.get.assert_called_once_with(
         url="http://test-url.com/me",
@@ -156,7 +156,7 @@ async def test_get_profile_data_returns_expected_spotify_profile(
 ):
     mock_endpoint_requester.get.return_value = mock_profile_data
 
-    profile = await spotify_data_service.get_profile_data("access")
+    profile = await spotify_data_service.get_user_profile("access")
 
     expected_profile = SpotifyProfile(
         id="1",

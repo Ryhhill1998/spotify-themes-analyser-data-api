@@ -3,7 +3,8 @@ from loguru import logger
 
 from api.dependencies import SpotifyDataServiceDependency
 from api.models.models import SpotifyArtist, AccessToken, RequestedItems
-from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException, \
+    SpotifyDataServiceUnauthorisedException
 
 router = APIRouter()
 
@@ -42,6 +43,10 @@ async def get_artist_by_id(
     try:
         artist = await spotify_data_service.get_artist_by_id(access_token=access_token.access_token, artist_id=artist_id)
         return artist
+    except SpotifyDataServiceUnauthorisedException as e:
+        error_message = "Invalid access token"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_message)
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested artist"
         logger.error(f"{error_message} - {e}")
@@ -89,6 +94,10 @@ async def get_several_artists_by_ids(
             artist_ids=requested_artists.ids
         )
         return artists
+    except SpotifyDataServiceUnauthorisedException as e:
+        error_message = "Invalid access token"
+        logger.error(f"{error_message} - {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_message)
     except SpotifyDataServiceNotFoundException as e:
         error_message = "Could not find the requested artists"
         logger.error(f"{error_message} - {e}")

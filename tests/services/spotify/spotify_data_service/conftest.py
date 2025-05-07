@@ -41,7 +41,7 @@ def mock_artist_data() -> dict:
     return {
         "id": "1",
         "name": "artist_name",
-        "images": [{"height": 100, "width": 100, "url": "album_image_url"}],
+        "images": [{"height": 100, "width": 100, "url": "image_url"}],
         "external_urls": {"spotify": "spotify_url"},
         "followers": {"total": 100},
         "genres": ["genre1", "genre2", "genre3"],

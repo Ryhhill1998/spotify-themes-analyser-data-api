@@ -2,20 +2,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from api.models.models import TopEmotionsResponse, SpotifyItemResponse
 from api.services.insights_service import InsightsServiceException
 from api.services.spotify.spotify_data_service import SpotifyDataServiceException
 
 BASE_URL = "/data/me/top"
-
-
-@pytest.fixture
-def mock_items_response(mock_item_factory, mock_response_tokens) -> MagicMock:
-    mock = MagicMock(spec=SpotifyItemResponse)
-    mock_items = [mock_item_factory(item_id=str(i)) for i in range(1, 6)]
-    mock.data = mock_items
-    mock.tokens = mock_response_tokens
-    return mock
 
 
 # -------------------- GET TOP ARTISTS -------------------- #

@@ -5,9 +5,6 @@ from api.services.insights_service import InsightsServiceException
 from api.services.spotify.spotify_data_service import SpotifyDataServiceNotFoundException, SpotifyDataServiceException, \
     SpotifyDataServiceUnauthorisedException
 
-BASE_URL = "/data/tracks"
-
-
 # -------------------- GET TRACK BY ID -------------------- #
 # 1. Test /data/tracks/{track_id} returns 401 error if SpotifyDataServiceUnauthorisedException occurs.
 # 2. Test /data/tracks/{track_id} returns 404 error if SpotifyDataServiceNotFoundException occurs.
@@ -35,6 +32,8 @@ BASE_URL = "/data/tracks"
 # 4. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 422 error if request missing access token.
 # 5. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns 500 error if response data type invalid.
 # 6. Test /tracks/{track_id}/lyrics/emotions/{emotion} returns expected response.
+
+BASE_URL = "/data/tracks"
 
 
 @pytest.fixture

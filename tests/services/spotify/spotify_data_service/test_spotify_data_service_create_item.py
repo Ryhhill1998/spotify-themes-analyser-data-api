@@ -138,7 +138,7 @@ def test__create_artist_returns_expected_artist(spotify_data_service, mock_artis
     expected_artist = SpotifyArtist(
         id="1",
         name="artist_name",
-        images=[SpotifyImage(height=100, width=100, url="album_image_url")],
+        images=[SpotifyImage(height=100, width=100, url="image_url")],
         spotify_url="spotify_url",
         genres=["genre1", "genre2", "genre3"],
         followers=100,

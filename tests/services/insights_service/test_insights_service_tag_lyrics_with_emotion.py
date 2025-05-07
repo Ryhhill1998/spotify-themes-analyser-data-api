@@ -1,12 +1,10 @@
-from unittest.mock import AsyncMock
 import pytest
 
-from api.models.models import TokenData, LyricsResponse, SpotifyTrack, SpotifyTrackArtist, SpotifyImage, \
-    EmotionalTagsResponse, Emotion, EmotionalTagsRequest, LyricsRequest
-from api.services.analysis_service import AnalysisService, AnalysisServiceException
-from api.services.insights_service import InsightsService, InsightsServiceException
-from api.services.lyrics_service import LyricsService, LyricsServiceException
-from api.services.spotify.spotify_data_service import SpotifyDataService, SpotifyDataServiceException
+from api.models.models import EmotionalTagsResponse, Emotion, EmotionalTagsRequest, LyricsRequest
+from api.services.analysis_service import AnalysisServiceException
+from api.services.insights_service import InsightsServiceException
+from api.services.lyrics_service import LyricsServiceException
+from api.services.spotify.spotify_data_service import SpotifyDataServiceException
 
 # 1. Test tag_lyrics_with_emotion raises InsightsServiceException if SpotifyDataServiceException occurs.
 # 2. Test tag_lyrics_with_emotion raises InsightsServiceException if LyricsServiceException occurs.
@@ -23,8 +21,7 @@ def mock_analysis_data() -> EmotionalTagsResponse:
 @pytest.mark.asyncio
 async def test_tag_lyrics_raises_insights_service_exception_if_spotify_data_service_exception_occurs(
         insights_service,
-        mock_spotify_data_service,
-        mock_request_tokens
+        mock_spotify_data_service
 ):
     exception_message = "Test SpotifyDataService failure"
     mock_spotify_data_service.get_track_by_id.side_effect = SpotifyDataServiceException(exception_message)
@@ -39,7 +36,6 @@ async def test_tag_lyrics_raises_insights_service_exception_if_spotify_data_serv
 @pytest.mark.asyncio
 async def test_tag_lyrics_raises_insights_service_exception_if_lyrics_service_exception_occurs(
         insights_service,
-        mock_request_tokens,
         mock_spotify_data_service,
         mock_spotify_track_factory,
         mock_lyrics_service
@@ -59,7 +55,6 @@ async def test_tag_lyrics_raises_insights_service_exception_if_lyrics_service_ex
 @pytest.mark.asyncio
 async def test_tag_lyrics_raises_insights_service_exception_if_analysis_service_exception_occurs(
         insights_service,
-        mock_request_tokens,
         mock_spotify_data_service,
         mock_spotify_track_factory,
         mock_lyrics_service,
@@ -83,7 +78,6 @@ async def test_tag_lyrics_raises_insights_service_exception_if_analysis_service_
 async def test_tag_lyrics_with_emotion_returns_expected_response(
         insights_service,
         mock_spotify_data_service,
-        mock_request_tokens,
         mock_spotify_track_factory,
         mock_lyrics_service,
         mock_lyrics_response_factory,

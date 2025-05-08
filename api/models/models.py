@@ -24,12 +24,12 @@ class TokenData(BaseModel):
     ----------
     access_token : str
         The access token used for authenticated requests to the Spotify API.
-    refresh_token : str
-        The refresh token used to obtain a new access token.
+    refresh_token : str | None = None
+        The refresh token used to obtain a new access token. Can be None. Will default as None.
     """
 
     access_token: str
-    refresh_token: str
+    refresh_token: str | None = None
 
 
 class SpotifyImage(BaseModel):

@@ -89,5 +89,5 @@ async def test_refresh_tokens_no_new_refresh_token_returned(
     assert (
             tokens.access_token == "new_access" and
             tokens.refresh_token != "new_refresh" and
-            tokens.refresh_token == old_refresh_token
+            tokens.refresh_token is None
     )

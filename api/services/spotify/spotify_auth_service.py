@@ -110,7 +110,7 @@ class SpotifyAuthService(SpotifyService):
             token_data = await self.endpoint_requester.post(url=url, headers=headers, data=data)
 
             access_token = token_data["access_token"]
-            refresh_token = token_data.get("refresh_token", refresh_token)
+            refresh_token = token_data.get("refresh_token") # spotify API will return None if not expired
 
             return TokenData(access_token=access_token, refresh_token=refresh_token)
         except EndpointRequesterException as e:

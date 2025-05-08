@@ -166,8 +166,7 @@ async def get_top_tracks(
 async def get_top_genres(
         access_token: AccessToken,
         spotify_data_service: SpotifyDataServiceDependency,
-        time_range: TimeRange,
-        limit: Annotated[int, Field(ge=1)] = 10
+        time_range: TimeRange
 ) -> list[TopGenre]:
     """
     Retrieves the user's top genres from Spotify.
@@ -180,8 +179,6 @@ async def get_top_genres(
         The object used to retrieve data from the Spotify API.
     time_range : TimeRange
         The time range to retrieve the top genres for.
-    limit : int
-        Limit to specify the number of top genres to retrieve (default is 10, must be at least 1).
 
     Returns
     -------
@@ -199,8 +196,7 @@ async def get_top_genres(
     try:
         top_genres = await spotify_data_service.get_top_genres(
             access_token=access_token.access_token,
-            time_range=time_range.value,
-            limit=limit
+            time_range=time_range.value
         )
         return top_genres
     except SpotifyDataServiceUnauthorisedException as e:
@@ -217,8 +213,7 @@ async def get_top_genres(
 async def get_top_emotions(
         access_token: AccessToken,
         insights_service: InsightsServiceDependency,
-        time_range: TimeRange,
-        limit: Annotated[int, Field(ge=1, le=15)] = 15
+        time_range: TimeRange
 ) -> list[TopEmotion]:
     """
     Retrieves the user's top emotions based on their Spotify listening history.
@@ -231,8 +226,6 @@ async def get_top_emotions(
         The object used to extract the top emotions from the user's Spotify listening history.
     time_range : TimeRange
         The time range to retrieve the top tracks for.
-    limit : int
-        Limit to specify the number of top tracks to retrieve (default is 5, must be at least 1 but no more than 15).
 
     Returns
     -------
@@ -249,8 +242,7 @@ async def get_top_emotions(
     try:
         top_emotions = await insights_service.get_top_emotions(
             access_token=access_token.access_token,
-            time_range=time_range.value,
-            limit=limit
+            time_range=time_range.value
         )
         return top_emotions
     except InsightsServiceException as e:

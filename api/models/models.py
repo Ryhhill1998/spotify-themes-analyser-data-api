@@ -13,7 +13,7 @@ class RequestedItems(BaseModel):
 
 class TopGenre(BaseModel):
     name: str
-    percentage: float
+    count: float
 
 
 class TokenData(BaseModel):

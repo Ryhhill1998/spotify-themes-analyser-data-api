@@ -177,7 +177,7 @@ class InsightsService:
         top_emotions = sorted(average_emotions, key=lambda emotion: emotion.percentage, reverse=True)
         return top_emotions
 
-    async def get_top_emotions(self, access_token: str, time_range: str, limit: int) -> list[TopEmotion]:
+    async def get_top_emotions(self, access_token: str, time_range: str) -> list[TopEmotion]:
         """
         Retrieves the top emotions detected in a user's top Spotify tracks.
 
@@ -190,8 +190,6 @@ class InsightsService:
             The token string used to retrieve the user's Spotify data from the SpotifyDataService.
         time_range : str
             The time range to retrieve the user's top emotions for.
-        limit : int
-            The maximum number of top emotions to return.
 
         Returns
         -------
@@ -203,11 +201,6 @@ class InsightsService:
         InsightsServiceException
             If any of the dependency services fail.
         """
-
-        if limit < 1:
-            error_message = "Limit cannot be less than 1."
-            logger.error(error_message)
-            raise InsightsServiceException(error_message)
 
         try:
             # get top tracks and refreshed tokens (if expired)
@@ -244,7 +237,7 @@ class InsightsService:
             self._check_data_not_empty(data=emotional_profiles, label="emotional profiles")
 
             # get top emotions from all emotional profiles
-            top_emotions = self._process_emotions(emotional_profiles=emotional_profiles)[:limit]
+            top_emotions = self._process_emotions(emotional_profiles=emotional_profiles)
 
             return top_emotions
         except (SpotifyDataServiceException, LyricsServiceException, AnalysisServiceException) as e:

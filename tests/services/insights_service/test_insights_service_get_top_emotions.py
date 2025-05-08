@@ -9,14 +9,13 @@ from api.services.insights_service import InsightsServiceException
 from api.services.lyrics_service import LyricsServiceException
 from api.services.spotify.spotify_data_service import SpotifyDataServiceException
 
-# 1. Test get_top_emotions raises InsightsServiceException if limit less than 1.
-# 2. Test get_top_emotions raises InsightsServiceException if SpotifyDataServiceException occurs.
-# 3. Test get_top_emotions raises InsightsServiceException if LyricsServiceException occurs.
-# 4. Test get_top_emotions raises InsightsServiceException if AnalysisServiceException occurs.
-# 5. Test get_top_emotions raises InsightsServiceException if top_tracks is empty.
-# 6. Test get_top_emotions raises InsightsServiceException if lyrics_list is empty.
-# 7. Test get_top_emotions raises InsightsServiceException if emotional_profiles is empty.
-# 8. Test get_top_emotions returns expected top emotions.
+# 1. Test get_top_emotions raises InsightsServiceException if SpotifyDataServiceException occurs.
+# 2. Test get_top_emotions raises InsightsServiceException if LyricsServiceException occurs.
+# 3. Test get_top_emotions raises InsightsServiceException if AnalysisServiceException occurs.
+# 4. Test get_top_emotions raises InsightsServiceException if top_tracks is empty.
+# 5. Test get_top_emotions raises InsightsServiceException if lyrics_list is empty.
+# 6. Test get_top_emotions raises InsightsServiceException if emotional_profiles is empty.
+# 7. Test get_top_emotions returns expected top emotions.
 
 
 @pytest.fixture
@@ -111,15 +110,7 @@ def mock_emotional_profiles(mock_emotional_profile_factory) -> list[EmotionalPro
     ]
 
 
-# 1. Test that get_top_emotions raises InsightsServiceException if limit less than 1.
-@pytest.mark.asyncio
-@pytest.mark.parametrize("limit", [0, -1, -10])
-async def test_get_top_emotions_raises_insights_service_exception_if_limit_less_than_1(insights_service, limit):
-    with pytest.raises(InsightsServiceException, match="Limit cannot be less than 1."):
-        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=limit)
-
-
-# 2. Test that get_top_emotions raises InsightsServiceException if SpotifyDataServiceException occurs.
+# 1. Test that get_top_emotions raises InsightsServiceException if SpotifyDataServiceException occurs.
 @pytest.mark.asyncio
 async def test_get_top_emotions_raises_insights_service_exception_if_spotify_data_service_exception_occurs(
         insights_service,
@@ -129,12 +120,12 @@ async def test_get_top_emotions_raises_insights_service_exception_if_spotify_dat
     mock_spotify_data_service.get_top_tracks.side_effect = SpotifyDataServiceException(exception_message)
 
     with pytest.raises(InsightsServiceException, match="Service failure") as e:
-        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term")
 
     assert exception_message in str(e.value)
 
 
-# 3. Test that get_top_emotions raises InsightsServiceException if LyricsServiceException occurs.
+# 2. Test that get_top_emotions raises InsightsServiceException if LyricsServiceException occurs.
 @pytest.mark.asyncio
 async def test_get_top_emotions_raises_insights_service_exception_if_lyrics_service_exception_occurs(
         insights_service,
@@ -147,12 +138,12 @@ async def test_get_top_emotions_raises_insights_service_exception_if_lyrics_serv
     mock_lyrics_service.get_lyrics_list.side_effect = LyricsServiceException(exception_message)
 
     with pytest.raises(InsightsServiceException, match="Service failure") as e:
-        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term")
 
     assert exception_message in str(e)
 
 
-# 4. Test that get_top_emotions raises InsightsServiceException if AnalysisServiceException occurs.
+# 3. Test that get_top_emotions raises InsightsServiceException if AnalysisServiceException occurs.
 @pytest.mark.asyncio
 async def test_get_top_emotions_raises_insights_service_exception_if_analysis_service_exception_occurs(
         insights_service,
@@ -167,12 +158,12 @@ async def test_get_top_emotions_raises_insights_service_exception_if_analysis_se
     mock_analysis_service.get_emotional_profiles.side_effect = AnalysisServiceException(exception_message)
 
     with pytest.raises(InsightsServiceException, match="Service failure") as e:
-        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term")
 
     assert exception_message in str(e)
 
 
-# 5. Test that get_top_emotions raises InsightsServiceException if top_tracks is empty.
+# 4. Test that get_top_emotions raises InsightsServiceException if top_tracks is empty.
 @pytest.mark.asyncio
 async def test_get_top_items_raises_insights_service_exception_if_top_tracks_empty(
         insights_service,
@@ -181,10 +172,10 @@ async def test_get_top_items_raises_insights_service_exception_if_top_tracks_emp
     mock_spotify_data_service.get_top_tracks.return_value = []
 
     with pytest.raises(InsightsServiceException, match="No top tracks found. Cannot proceed further with analysis."):
-        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term")
 
 
-# 6. Test that get_top_emotions raises InsightsServiceException if lyrics_list is empty.
+# 5. Test that get_top_emotions raises InsightsServiceException if lyrics_list is empty.
 @pytest.mark.asyncio
 async def test_get_top_items_raises_insights_service_exception_if_lyrics_list_empty(
         insights_service,
@@ -196,12 +187,12 @@ async def test_get_top_items_raises_insights_service_exception_if_lyrics_list_em
     mock_lyrics_service.get_lyrics_list.return_value = []
 
     with pytest.raises(InsightsServiceException, match="No lyrics found. Cannot proceed further with analysis."):
-        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
+        await insights_service.get_top_emotions(access_token="", time_range="short_term")
 
 
-# 7. Test that get_top_emotions raises InsightsServiceException if emotional_profiles is empty.
+# 6. Test that get_top_emotions raises InsightsServiceException if emotional_profiles is empty.
 @pytest.mark.asyncio
-async def test_get_top_items_raises_insights_service_exception_if_top_tracks_empty(
+async def test_get_top_items_raises_insights_service_exception_if_emotional_profiles_empty(
         insights_service,
         mock_spotify_data_service,
         mock_spotify_tracks,
@@ -213,13 +204,14 @@ async def test_get_top_items_raises_insights_service_exception_if_top_tracks_emp
     mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_list
     mock_analysis_service.get_emotional_profiles.return_value = []
 
-    with pytest.raises(InsightsServiceException,
-                       match="No emotional profiles found. Cannot proceed further with analysis."):
-        await insights_service.get_top_emotions(access_token="", time_range="short_term", limit=10)
+    with pytest.raises(
+            InsightsServiceException,
+            match="No emotional profiles found. Cannot proceed further with analysis."
+    ):
+        await insights_service.get_top_emotions(access_token="", time_range="short_term")
 
-# 8. Test get_top_emotions returns expected top emotions.
+# 7. Test get_top_emotions returns expected top emotions.
 @pytest.mark.asyncio
-@pytest.mark.parametrize("limit", [5, 4, 3, 2, 1])
 async def test_get_top_emotions_returns_expected_top_emotions(
         insights_service,
         mock_spotify_data_service,
@@ -227,29 +219,33 @@ async def test_get_top_emotions_returns_expected_top_emotions(
         mock_lyrics_service,
         mock_lyrics_list,
         mock_analysis_service,
-        mock_emotional_profiles,
-        limit
+        mock_emotional_profiles
 ):
     access_token = "access"
-    time_range = "short-term"
+    time_range = "short_term"
     mock_spotify_data_service.get_top_tracks.return_value = mock_spotify_tracks
     mock_lyrics_service.get_lyrics_list.return_value = mock_lyrics_list
     mock_analysis_service.get_emotional_profiles.return_value = mock_emotional_profiles
 
     top_emotions = await insights_service.get_top_emotions(
         access_token=access_token,
-        time_range=time_range,
-        limit=limit
+        time_range=time_range
     )
 
-    all_top_emotions = [
+    expected_top_emotions = [
         TopEmotion(name="defiance", percentage=0.25, track_id="2"),
         TopEmotion(name="nostalgia", percentage=0.14, track_id="2"),
         TopEmotion(name="sadness", percentage=0.12, track_id="2"),
         TopEmotion(name="spirituality", percentage=0.12, track_id="1"),
-        TopEmotion(name="joy", percentage=0.1, track_id="1")
+        TopEmotion(name="joy", percentage=0.1, track_id="1"),
+        TopEmotion(name="gratitude", percentage=0.07, track_id="1"),
+        TopEmotion(name="anger", percentage=0.05, track_id="1"),
+        TopEmotion(name="hope", percentage=0.05, track_id="1"),
+        TopEmotion(name="mystery", percentage=0.03, track_id="2"),
+        TopEmotion(name="loneliness", percentage=0.02, track_id="1"),
+        TopEmotion(name="confidence", percentage=0.02, track_id="1"),
+        TopEmotion(name="excitement", percentage=0.01, track_id="1")
     ]
-    expected_top_emotions = all_top_emotions[:limit]
     assert top_emotions == expected_top_emotions
     mock_spotify_data_service.get_top_tracks.assert_called_once_with(
         access_token=access_token,

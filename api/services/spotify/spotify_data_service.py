@@ -389,7 +389,7 @@ class SpotifyDataService(SpotifyService):
         top_tracks = [self._create_track(entry) for entry in top_items_data]
         return top_tracks
 
-    async def get_top_genres(self, access_token: str, time_range: str, limit: int) -> list[TopGenre]:
+    async def get_top_genres(self, access_token: str, time_range: str) -> list[TopGenre]:
         """
         Retrieves the top genres for a user based on their top artists.
 
@@ -399,8 +399,6 @@ class SpotifyDataService(SpotifyService):
             The Spotify API access token.
         time_range : str
             The time range to consider for the user's top artists (e.g., 'short_term', 'medium_term', 'long_term').
-        limit : int
-            The maximum number of top genres to return. Must be at least 1.
 
         Returns
         -------
@@ -415,9 +413,6 @@ class SpotifyDataService(SpotifyService):
             If the Spotify API request for top artists returns a 401 Unauthorised response code.
         """
 
-        if limit <= 0:
-            raise SpotifyDataServiceException("Limit must be at least 1.")
-
         top_artists = await self.get_top_artists(access_token=access_token, time_range=time_range, limit=50)
 
         if not top_artists:
@@ -428,24 +423,16 @@ class SpotifyDataService(SpotifyService):
             for artist in top_artists
             for genre in artist.genres
         ]
-        total_genres = len(all_genres)
 
         genres_map = defaultdict(int)
 
         for genre in all_genres:
             genres_map[genre] += 1
 
-        top_genres = []
+        top_genres = [TopGenre(name=genre, count=count) for genre, count in genres_map.items()]
+        top_genres.sort(key=lambda genre: genre.count, reverse=True)
 
-        for genre, freq in genres_map.items():
-            percentage = round(100 * freq / total_genres)
-            top_genre = TopGenre(name=genre, percentage=percentage)
-            top_genres.append(top_genre)
-
-        top_genres.sort(key=lambda genre: genre.percentage, reverse=True)
-        sampled_top_genres = top_genres[:limit]
-
-        return sampled_top_genres
+        return top_genres
 
     async def _get_item_data_by_id(self, access_token: str, item_id: str, item_type: SpotifyItemType) -> dict:
         """

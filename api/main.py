@@ -75,7 +75,4 @@ async def log_requests(request: Request, call_next):
 
     response = await call_next(request)
 
-    set_cookie_headers = response.headers.getlist("set-cookie")
-    logger.info(f"Set-Cookie Headers: {set_cookie_headers}")
-
     return response

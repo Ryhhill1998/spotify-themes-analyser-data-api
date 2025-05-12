@@ -71,7 +71,7 @@ async def log_requests(request: Request, call_next):
 
     logger.info(log_message)
 
-    logger.info(f"Cookies: {request.cookies}")
+    logger.info(f"Data: {await request.body()}")
 
     response = await call_next(request)
 

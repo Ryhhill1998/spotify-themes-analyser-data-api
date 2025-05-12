@@ -61,29 +61,6 @@ class InsightsService:
         self.analysis_service = analysis_service
 
     @staticmethod
-    def _check_data_not_empty(data: list, label: str):
-        """
-        Checks if the provided data is empty and raises an exception if it is.
-
-        Parameters
-        ----------
-        data : list
-            The list of data to be checked.
-        label : str
-            A label representing the type of data being checked (e.g., "top tracks").
-
-        Raises
-        ------
-        InsightsServiceException
-            If the data list is empty, an exception is raised with an appropriate error message.
-        """
-
-        if len(data) == 0:
-            error_message = f"No {label} found. Cannot proceed further with analysis."
-            logger.error(error_message)
-            raise InsightsServiceException(error_message)
-
-    @staticmethod
     def _aggregate_emotions(emotional_analyses: list[EmotionalProfileResponse]) -> dict:
         """
         Aggregates emotional analysis results across multiple songs.
@@ -209,7 +186,9 @@ class InsightsService:
                 time_range=time_range,
                 limit=30
             )
-            self._check_data_not_empty(data=top_tracks, label="top tracks")
+            if not top_tracks:
+                logger.info("No top tracks found. Cannot proceed further with analysis.")
+                return []
 
             # get lyrics for each track
             lyrics_requests = [
@@ -222,7 +201,9 @@ class InsightsService:
                 in top_tracks
             ]
             lyrics_list = await self.lyrics_service.get_lyrics_list(lyrics_requests)
-            self._check_data_not_empty(data=lyrics_list, label="lyrics")
+            if not lyrics_list:
+                logger.info("No lyrics found. Cannot proceed further with analysis.")
+                return []
 
             # get emotional profiles for each set of lyrics
             emotional_profile_requests = [
@@ -234,7 +215,9 @@ class InsightsService:
                 in lyrics_list
             ]
             emotional_profiles = await self.analysis_service.get_emotional_profiles(emotional_profile_requests)
-            self._check_data_not_empty(data=emotional_profiles, label="emotional profiles")
+            if not emotional_profiles:
+                logger.info("No emotional profiles found. Cannot proceed further with analysis.")
+                return []
 
             # get top emotions from all emotional profiles
             top_emotions = self._process_emotions(emotional_profiles=emotional_profiles)

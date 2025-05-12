@@ -351,9 +351,7 @@ class SpotifyDataService(SpotifyService):
             time_range=time_range, 
             limit=limit
         )
-        logger.info(f"{top_items_data = }")
         top_artists = [self._create_artist(entry) for entry in top_items_data]
-        logger.info(f"{top_artists = }")
         return top_artists
     
     async def get_top_tracks(self, access_token: str, time_range: str, limit: int) -> list[SpotifyTrack]:
@@ -418,7 +416,7 @@ class SpotifyDataService(SpotifyService):
         top_artists = await self.get_top_artists(access_token=access_token, time_range=time_range, limit=50)
 
         if not top_artists:
-            raise SpotifyDataServiceException("No top artists found. Cannot proceed with analysis.")
+            return []
 
         all_genres = [
             genre

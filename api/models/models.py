@@ -429,7 +429,7 @@ class TopEmotion(BaseModel):
 
     name: str
     percentage: EmotionPercentage
-    track_id: str
+    track_id: str | None
 
 
 class Emotion(str, Enum):

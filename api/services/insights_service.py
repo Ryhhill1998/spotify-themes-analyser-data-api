@@ -124,10 +124,9 @@ class InsightsService:
             TopEmotion(
                 name=emotion,
                 percentage=round(info["total"] / result_count, 2),
-                track_id=track_id
+                track_id=info["max_track"]["track_id"]
             )
             for emotion, info in total_emotions.items()
-            if (track_id := info["max_track"]["track_id"]) is not None
         ]
 
     def _process_emotions(self, emotional_profiles: list[EmotionalProfileResponse]) -> list[TopEmotion]:

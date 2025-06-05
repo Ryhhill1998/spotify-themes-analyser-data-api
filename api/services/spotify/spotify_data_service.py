@@ -169,7 +169,7 @@ class SpotifyDataService(SpotifyService):
             raise SpotifyDataServiceException(error_message)
 
     @staticmethod
-    def _create_track(data: dict) -> SpotifyTrack:
+    def _create_track(data: dict, position: int | None = None) -> SpotifyTrack:
         """
         Creates a SpotifyTrack object from Spotify API data.
 
@@ -206,7 +206,8 @@ class SpotifyDataService(SpotifyService):
                 release_date=album.release_date,
                 explicit=track_data.explicit,
                 duration_ms=track_data.duration_ms,
-                popularity=track_data.popularity
+                popularity=track_data.popularity,
+                position=position
             )
     
             return top_track
@@ -220,7 +221,7 @@ class SpotifyDataService(SpotifyService):
             raise SpotifyDataServiceException(error_message)
 
     @staticmethod
-    def _create_artist(data: dict) -> SpotifyArtist:
+    def _create_artist(data: dict, position: int | None = None) -> SpotifyArtist:
         """
         Creates a SpotifyArtist object from Spotify API data.
 
@@ -250,7 +251,8 @@ class SpotifyDataService(SpotifyService):
                 spotify_url=artist_data.external_urls.spotify,
                 genres=artist_data.genres,
                 followers=artist_data.followers.total,
-                popularity=artist_data.popularity
+                popularity=artist_data.popularity,
+                position=position
             )
     
             return top_artist
@@ -351,7 +353,7 @@ class SpotifyDataService(SpotifyService):
             time_range=time_range, 
             limit=limit
         )
-        top_artists = [self._create_artist(entry) for entry in top_items_data]
+        top_artists = [self._create_artist(data=entry, position=index + 1) for index, entry in enumerate(top_items_data)]
         return top_artists
     
     async def get_top_tracks(self, access_token: str, time_range: str, limit: int) -> list[SpotifyTrack]:
@@ -386,7 +388,7 @@ class SpotifyDataService(SpotifyService):
             time_range=time_range, 
             limit=limit
         )
-        top_tracks = [self._create_track(entry) for entry in top_items_data]
+        top_tracks = [self._create_track(data=entry, position=index + 1) for index, entry in enumerate(top_items_data)]
         return top_tracks
 
     async def get_top_genres(self, access_token: str, time_range: str) -> list[TopGenre]:

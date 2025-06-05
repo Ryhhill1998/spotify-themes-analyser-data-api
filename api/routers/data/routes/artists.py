@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from loguru import logger
+from pydantic import BaseModel
 
 from api.dependencies import SpotifyDataServiceDependency
 from api.models.models import SpotifyArtist, AccessToken, RequestedItems
